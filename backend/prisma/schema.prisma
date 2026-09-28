@@ -1,0 +1,449 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Roles Table
+model Role {
+  id        String   @id @default(uuid())
+  name      String   @unique // OWNER, PROJECT_MANAGER, MEMBER, FINANCE, CLIENT
+  createdAt DateTime @default(now())
+
+  users User[]
+
+  @@map("roles")
+}
+
+// 2. Users Table
+model User {
+  id           String   @id @default(uuid())
+  roleId       String
+  role         Role     @relation(fields: [roleId], references: [id])
+  name         String
+  email        String   @unique
+  password     String
+  phone        String?
+  avatar       String?
+  hourlyRate   Float    @default(100000) // Used ONLY for internal labor cost calculation (hours * hourlyRateSnapshot)
+  status       String   @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  projectMemberships       ProjectMember[]
+  managedProjects          Project[]               @relation("PMProjects")
+  assignedTasks            Task[]                  @relation("TaskAssignee")
+  timesheets               Timesheet[]             @relation("UserTimesheets")
+  approvedTimesheets       Timesheet[]             @relation("TimesheetApprover")
+  submittedExpenses        Expense[]               @relation("UserExpenses")
+  approvedExpenses         Expense[]               @relation("ExpenseApprover")
+  changedBudgetRevisions   BudgetRevision[]        @relation("RevisionChanger")
+  approvedBudgetRevisions BudgetRevision[]        @relation("RevisionApprover")
+  createdPurchaseOrders    PurchaseOrder[]         @relation("POCreator")
+  approvedPurchaseOrders   PurchaseOrder[]         @relation("POApprover")
+  createdPayments          Payment[]               @relation("PaymentCreator")
+  notifications            Notification[]
+  auditLogs                AuditLog[]
+
+  @@index([roleId])
+  @@index([email])
+  @@map("users")
+}
+
+// 3. Clients Table
+model Client {
+  id            String   @id @default(uuid())
+  companyName   String
+  contactPerson String
+  email         String
+  phone         String?
+  address       String?
+  status        String   @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  projects Project[]
+  invoices Invoice[]
+
+  @@map("clients")
+}
+
+// 4. Projects Table
+model Project {
+  id                 String   @id @default(uuid())
+  clientId           String
+  client             Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectManagerId   String?
+  projectManager     User?    @relation("PMProjects", fields: [projectManagerId], references: [id], onDelete: SetNull)
+  projectCode        String   @unique
+  name               String
+  description        String?
+  startDate          DateTime
+  endDate            DateTime
+  contractValue      Float
+  status             String   @default("ACTIVE") // PLANNING, ACTIVE, ON_HOLD, COMPLETED, CANCELLED
+  progressPercentage Float    @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  members        ProjectMember[]
+  phases         WbsPhase[]
+  tasks          Task[]
+  timesheets     Timesheet[]
+  expenses       Expense[]
+  budgets        Budget[]
+  purchaseOrders PurchaseOrder[]
+  milestones     Milestone[]
+  invoices       Invoice[]
+  payments       Payment[]
+
+  @@index([clientId])
+  @@index([projectManagerId])
+  @@index([projectCode])
+  @@map("projects")
+}
+
+// 5. Project Members Table (Many-to-Many: Project <-> User)
+model ProjectMember {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime @default(now())
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_members")
+}
+
+// 6. WBS Phases Table (Nested WBS Structure)
+model WbsPhase {
+  id                 String     @id @default(uuid())
+  projectId          String
+  project            Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parentId           String?
+  parent             WbsPhase?  @relation("NestedWBS", fields: [parentId], references: [id], onDelete: Cascade)
+  children           WbsPhase[] @relation("NestedWBS")
+  name               String
+  description        String?
+  sortOrder          Int        @default(0)
+  budgetAmount       Float      @default(0)
+  progressPercentage Float      @default(0)
+  status             String     @default("IN_PROGRESS") // PLANNING, IN_PROGRESS, COMPLETED
+
+  tasks          Task[]
+  expenses       Expense[]
+  budgets        Budget[]
+  purchaseOrders PurchaseOrder[]
+
+  @@index([projectId])
+  @@index([parentId])
+  @@map("wbs_phases")
+}
+
+// 7. Tasks Table (Sub-tasks via parentTaskId)
+model Task {
+  id                 String    @id @default(uuid())
+  projectId          String
+  project            Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phaseId            String
+  phase              WbsPhase  @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  parentTaskId       String?
+  parentTask         Task?     @relation("SubTasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  subTasks           Task[]    @relation("SubTasks")
+  assignedToId       String?
+  assignedTo         User?     @relation("TaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  title              String
+  description        String?
+  priority           String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status             String    @default("TODO") // TODO, IN_PROGRESS, REVIEW, COMPLETED
+  startDate          DateTime?
+  dueDate            DateTime?
+  estimatedHours     Float     @default(0)
+  actualHours        Float     @default(0)
+  progressPercentage Float     @default(0)
+  estimatedCost      Float     @default(0)
+  actualCost         Float     @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  timesheets Timesheet[]
+  expenses   Expense[]
+
+  @@index([projectId])
+  @@index([phaseId])
+  @@index([assignedToId])
+  @@index([parentTaskId])
+  @@map("tasks")
+}
+
+// 8. Timesheets Table (Labor Cost = hours * hourlyRateSnapshot)
+model Timesheet {
+  id                 String    @id @default(uuid())
+  userId             String
+  user               User      @relation("UserTimesheets", fields: [userId], references: [id], onDelete: Cascade)
+  projectId          String
+  project            Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskId             String
+  task               Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  date               DateTime
+  hours              Float
+  hourlyRateSnapshot Float // Snapshot of user hourly rate at log time
+  laborCost          Float // Calculated: hours * hourlyRateSnapshot
+  description        String?
+  status             String    @default("APPROVED") // SUBMITTED, APPROVED, REJECTED
+  approvedById       String?
+  approvedBy         User?     @relation("TimesheetApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt         DateTime?
+  createdAt          DateTime  @default(now())
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([taskId])
+  @@map("timesheets")
+}
+
+// 9. Expenses Table (Direct Project Costs)
+model Expense {
+  id              String         @id @default(uuid())
+  projectId       String
+  project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phaseId         String
+  phase           WbsPhase       @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  taskId          String?
+  task            Task?          @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  submittedById   String
+  submittedBy     User           @relation("UserExpenses", fields: [submittedById], references: [id], onDelete: Cascade)
+  category        String         @default("OTHER") // MATERIAL, SOFTWARE_LICENSE, TRAVEL, SUBCONTRACTOR, OTHER
+  description     String?
+  amount          Float
+  expenseDate     DateTime
+  receiptPath     String?
+  status          String         @default("APPROVED") // DRAFT, SUBMITTED, APPROVED, REJECTED, PAID
+  approvedById    String?
+  approvedBy      User?          @relation("ExpenseApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt      DateTime?
+  paidAt          DateTime?
+  createdAt       DateTime       @default(now())
+
+  payments Payment[]
+
+  @@index([projectId])
+  @@index([phaseId])
+  @@index([submittedById])
+  @@index([purchaseOrderId])
+  @@map("expenses")
+}
+
+// 10. Budgets Table
+model Budget {
+  id              String   @id @default(uuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phaseId         String?
+  phase           WbsPhase? @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  category        String   @default("LABOR") // LABOR, MATERIAL, SUBCONTRACTOR, OTHER
+  baselineAmount  Float    @default(0)
+  currentAmount   Float    @default(0)
+  actualAmount    Float    @default(0)
+  committedAmount Float    @default(0) // From approved Purchase Orders
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  revisions BudgetRevision[]
+
+  @@index([projectId])
+  @@index([phaseId])
+  @@map("budgets")
+}
+
+// 11. Budget Revisions Table (Audit Trail)
+model BudgetRevision {
+  id           String   @id @default(uuid())
+  budgetId     String
+  budget       Budget   @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  oldAmount    Float
+  newAmount    Float
+  reason       String
+  changedById  String
+  changedBy    User     @relation("RevisionChanger", fields: [changedById], references: [id])
+  approvedById String?
+  approvedBy   User?    @relation("RevisionApprover", fields: [approvedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([budgetId])
+  @@map("budget_revisions")
+}
+
+// 12. Purchase Orders Table (Committed Costs)
+model PurchaseOrder {
+  id           String    @id @default(uuid())
+  projectId    String
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phaseId      String?
+  phase        WbsPhase? @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  vendorId     String?
+  vendor       Vendor?   @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  vendorName   String
+  poNumber     String    @unique
+  amount       Float     @default(0) // subtotal
+  taxRate      Float     @default(0)
+  taxAmount    Float     @default(0)
+  totalAmount  Float     @default(0)
+  description  String?
+  notes        String?
+  status       String    @default("DRAFT") // DRAFT, SUBMITTED, APPROVED, REJECTED, PARTIALLY_RECEIVED, COMPLETED, CANCELLED
+  orderDate    DateTime
+  expectedDate DateTime?
+  createdById  String
+  createdBy    User      @relation("POCreator", fields: [createdById], references: [id])
+  approvedById String?
+  approvedBy   User?     @relation("POApprover", fields: [approvedById], references: [id])
+  createdAt    DateTime  @default(now())
+
+  expenses Expense[]
+  payments Payment[]
+
+  @@index([projectId])
+  @@index([poNumber])
+  @@index([vendorId])
+  @@map("purchase_orders")
+}
+
+// 13. Milestones Table
+model Milestone {
+  id                  String    @id @default(uuid())
+  projectId           String
+  project             Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name                String
+  description         String?
+  dueDate             DateTime
+  progressRequirement Float     @default(100)
+  amount              Float     @default(0)
+  billingType         String    @default("PERCENTAGE") // FIXED, PERCENTAGE, MANUAL
+  status              String    @default("UPCOMING") // UPCOMING, IN_PROGRESS, READY_TO_BILL, INVOICED, COMPLETED, DELAYED
+  completedAt         DateTime?
+  createdAt           DateTime  @default(now())
+
+  invoices Invoice[]
+
+  @@index([projectId])
+  @@map("milestones")
+}
+
+// 14. Invoices Table
+model Invoice {
+  id            String     @id @default(uuid())
+  projectId     String
+  project       Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  clientId      String
+  client        Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  milestoneId   String?
+  milestone     Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  invoiceNumber String     @unique
+  amount        Float      @default(0) // subtotal
+  subtotal      Float      @default(0)
+  taxRate       Float      @default(0)
+  taxAmount     Float      @default(0)
+  totalAmount   Float      @default(0)
+  issueDate     DateTime
+  dueDate       DateTime
+  status        String     @default("DRAFT") // DRAFT, ISSUED, SENT, PAID, PARTIAL, OVERDUE, CANCELLED
+  notes         String?
+  createdAt     DateTime   @default(now())
+
+  payments Payment[]
+
+  @@index([projectId])
+  @@index([clientId])
+  @@index([milestoneId])
+  @@index([invoiceNumber])
+  @@map("invoices")
+}
+
+// 15. Payments Table (Client Payment & Vendor/Project Payment)
+model Payment {
+  id              String         @id @default(uuid())
+  paymentNumber   String?
+  type            String         @default("CLIENT_PAYMENT") // CLIENT_PAYMENT (Cash In), VENDOR_PAYMENT (Cash Out)
+  invoiceId       String?
+  invoice         Invoice?       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  expenseId       String?
+  expense         Expense?       @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  projectId       String?
+  project         Project?       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  amount          Float
+  paymentDate     DateTime
+  paymentMethod   String         @default("BANK_TRANSFER") // BANK_TRANSFER, CASH, E_WALLET, CHEQUE, OTHER
+  referenceNumber String?
+  notes           String?
+  createdById     String
+  createdBy       User           @relation("PaymentCreator", fields: [createdById], references: [id])
+  createdAt       DateTime       @default(now())
+
+  @@index([invoiceId])
+  @@index([purchaseOrderId])
+  @@index([expenseId])
+  @@index([projectId])
+  @@index([paymentNumber])
+  @@map("payments")
+}
+
+// 18. Vendors Table (Workflow 10)
+model Vendor {
+  id            String   @id @default(uuid())
+  name          String
+  contactPerson String?
+  email         String?
+  phone         String?
+  address       String?
+  status        String   @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  purchaseOrders PurchaseOrder[]
+
+  @@map("vendors")
+}
+
+// 16. Notifications Table
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String    // OVER_BUDGET, MILESTONE_COMPLETED, EXPENSE_APPROVAL, INVOICE_DUE, PAYMENT_RECEIVED, SYSTEM
+  title     String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+// 17. Audit Logs Table (Workflow 12)
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String   // BUDGET_CHANGE, PROJECT_CHANGE, EXPENSE_APPROVAL, INVOICE_CHANGE, PAYMENT_RECORDED, TASK_STATUS_CHANGE
+  targetType String  // PROJECT, TASK, BUDGET, EXPENSE, INVOICE, PAYMENT
+  targetId  String
+  oldValue  String?
+  newValue  String?
+  timestamp DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([targetType, targetId])
+  @@map("audit_logs")
+}
