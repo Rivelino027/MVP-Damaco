@@ -1,0 +1,701 @@
+// BudgetFlow - Prisma schema (PostgreSQL)
+// Money: Decimal(18,2), Rupiah. Roles: one role per account.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────── Enums ─────────────
+
+enum Role {
+  pengguna
+  admin
+  finance
+  super_admin
+}
+
+enum ProjectStatus {
+  diajukan
+  berjalan
+  ditutup
+}
+
+enum TaskStatus {
+  belum_mulai
+  dikerjakan
+  review
+  selesai
+}
+
+enum Priority {
+  rendah
+  sedang
+  tinggi
+}
+
+enum BudgetStatus {
+  draft
+  aktif
+  digantikan
+}
+
+enum BudgetRequestType {
+  awal
+  perubahan
+}
+
+enum BudgetRequestStatus {
+  draft
+  menunggu_admin
+  menunggu_finance
+  menunggu_super_admin
+  disetujui
+  ditolak
+}
+
+enum TimesheetStatus {
+  draft
+  menunggu_admin
+  disetujui
+  ditolak
+}
+
+enum ExpenseStatus {
+  draft
+  menunggu_admin
+  menunggu_finance
+  disetujui
+  ditolak
+  siap_dibayar
+  dibayar
+}
+
+enum PaymentMethod {
+  transfer
+  tunai
+}
+
+enum DocumentType {
+  timesheet
+  expense
+  budget_request
+}
+
+enum ApprovalStatus {
+  menunggu
+  disetujui
+  ditolak
+}
+
+enum LimitStatus {
+  berlaku
+  digantikan
+}
+
+enum LimitChangeStatus {
+  diusulkan
+  menunggu_konfirmasi
+  berlaku
+  ditolak
+}
+
+enum AttachmentOwner {
+  task
+  expense
+  payment
+}
+
+enum FlagType {
+  terindikasi_dipecah
+  vendor_baru
+}
+
+enum Platform {
+  ios
+  android
+}
+
+// ───────────── Akses dan organisasi ─────────────
+
+model Department {
+  id           String       @id @default(uuid())
+  name         String       @unique
+  headUserId   String?
+  headUser     User?        @relation("DepartmentHead", fields: [headUserId], references: [id])
+  annualBudget Decimal      @default(0) @db.Decimal(18, 2)
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deletedAt    DateTime?
+
+  users        User[]       @relation("UserDepartment")
+  costCenters  CostCenter[]
+  projects     Project[]
+
+  @@map("departments")
+}
+
+model CostCenter {
+  id           String     @id @default(uuid())
+  code         String     @unique
+  name         String
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  projects     Project[]
+  expenses     Expense[]
+
+  @@index([departmentId])
+  @@map("cost_centers")
+}
+
+model User {
+  id           String      @id @default(uuid())
+  name         String
+  email        String      @unique
+  passwordHash String
+  role         Role
+  departmentId String?
+  department   Department? @relation("UserDepartment", fields: [departmentId], references: [id])
+  jobTitle     String?
+  avatarUrl    String?
+  isActive     Boolean     @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
+
+  headOf              Department[]         @relation("DepartmentHead")
+  refreshTokens       RefreshToken[]
+  passwordResets      PasswordReset[]
+  createdProjects     Project[]            @relation("ProjectCreator")
+  memberships         ProjectMember[]      @relation("MemberUser")
+  assignedTasks       Task[]               @relation("TaskAssignee")
+  comments            TaskComment[]
+  timesheets          Timesheet[]          @relation("TimesheetOwner")
+  expenses            Expense[]            @relation("ExpenseRequester")
+  hourlyCosts         HourlyCost[]         @relation("HourlyCostUser")
+  notifications       Notification[]
+  deviceTokens        DeviceToken[]
+  activityLogs        ActivityLog[]
+  budgetRequests      BudgetRequest[]      @relation("BudgetRequester")
+  approvalsActed      Approval[]           @relation("Approver")
+  limitProposals      LimitChangeRequest[] @relation("LimitProposer")
+  limitConfirmations  LimitChangeRequest[] @relation("LimitConfirmer")
+
+  @@index([role])
+  @@index([departmentId])
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  tokenHash  String    @unique
+  deviceInfo String?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model PasswordReset {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@map("password_resets")
+}
+
+// ───────────── Master data ─────────────
+
+model ExpenseCategory {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  code      String   @unique
+  color     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  budgetItems        BudgetItem[]
+  budgetRequestItems BudgetRequestItem[]
+  expenses           Expense[]
+
+  @@map("expense_categories")
+}
+
+model ProjectType {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  isActive  Boolean   @default(true)
+  projects  Project[]
+
+  @@map("project_types")
+}
+
+// ───────────── Proyek dan task ─────────────
+
+model Project {
+  id              String        @id @default(uuid())
+  name            String
+  description     String?
+  departmentId    String
+  department      Department    @relation(fields: [departmentId], references: [id])
+  costCenterId    String
+  costCenter      CostCenter    @relation(fields: [costCenterId], references: [id])
+  projectTypeId   String?
+  projectType     ProjectType?  @relation(fields: [projectTypeId], references: [id])
+  status          ProjectStatus @default(diajukan)
+  startDate       DateTime?
+  endDate         DateTime?
+  progressPercent Decimal       @default(0) @db.Decimal(5, 2)
+  createdById     String
+  createdBy       User          @relation("ProjectCreator", fields: [createdById], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  members         ProjectMember[]
+  phases          Phase[]
+  milestones      Milestone[]
+  tasks           Task[]
+  budgets         Budget[]
+  budgetRequests  BudgetRequest[]
+  expenses        Expense[]
+
+  @@index([departmentId])
+  @@index([status])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  userId    String
+  user      User     @relation("MemberUser", fields: [userId], references: [id])
+  addedById String?
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+model Phase {
+  id        String    @id @default(uuid())
+  projectId String
+  project   Project   @relation(fields: [projectId], references: [id])
+  name      String
+  sortOrder Int       @default(0)
+  startDate DateTime?
+  endDate   DateTime?
+
+  tasks              Task[]
+  milestones         Milestone[]
+  budgetItems        BudgetItem[]
+  budgetRequestItems BudgetRequestItem[]
+
+  @@index([projectId])
+  @@map("phases")
+}
+
+model Milestone {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  phaseId   String?
+  phase     Phase?   @relation(fields: [phaseId], references: [id])
+  name      String
+  dueDate   DateTime
+  isDone    Boolean  @default(false)
+
+  @@map("milestones")
+}
+
+model Task {
+  id             String     @id @default(uuid())
+  projectId      String
+  project        Project    @relation(fields: [projectId], references: [id])
+  phaseId        String?
+  phase          Phase?     @relation(fields: [phaseId], references: [id])
+  title          String
+  description    String?
+  assigneeId     String?
+  assignee       User?      @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  status         TaskStatus @default(belum_mulai)
+  priority       Priority   @default(sedang)
+  dueDate        DateTime?
+  estimatedHours Decimal?   @db.Decimal(8, 2)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  deletedAt      DateTime?
+
+  checklists     TaskChecklist[]
+  comments       TaskComment[]
+  entries        TimesheetEntry[]
+  expenses       Expense[]
+
+  @@index([projectId])
+  @@index([assigneeId])
+  @@index([status])
+  @@map("tasks")
+}
+
+model TaskChecklist {
+  id     String  @id @default(uuid())
+  taskId String
+  task   Task    @relation(fields: [taskId], references: [id])
+  text   String
+  isDone Boolean @default(false)
+
+  @@map("task_checklists")
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+
+  @@map("task_comments")
+}
+
+// Polymorphic: ownerType + ownerId (no FK). Receipts, transfer proofs, task files.
+model Attachment {
+  id         String          @id @default(uuid())
+  ownerType  AttachmentOwner
+  ownerId    String
+  fileUrl    String
+  fileName   String
+  mimeType   String
+  size       Int
+  uploadedBy String
+  createdAt  DateTime        @default(now())
+
+  @@index([ownerType, ownerId])
+  @@map("attachments")
+}
+
+// ───────────── Anggaran ─────────────
+
+model Budget {
+  id          String       @id @default(uuid())
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id])
+  version     Int          @default(1)
+  status      BudgetStatus @default(draft)
+  totalAmount Decimal      @default(0) @db.Decimal(18, 2)
+  isBaseline  Boolean      @default(false)
+  lockedAt    DateTime?
+  approvedBy  String?
+  createdAt   DateTime     @default(now())
+
+  items       BudgetItem[]
+
+  @@unique([projectId, version])
+  @@map("budgets")
+}
+
+model BudgetItem {
+  id         String          @id @default(uuid())
+  budgetId   String
+  budget     Budget          @relation(fields: [budgetId], references: [id])
+  phaseId    String?
+  phase      Phase?          @relation(fields: [phaseId], references: [id])
+  categoryId String
+  category   ExpenseCategory @relation(fields: [categoryId], references: [id])
+  amount     Decimal         @db.Decimal(18, 2)
+
+  @@index([budgetId])
+  @@map("budget_items")
+}
+
+model BudgetRequest {
+  id           String              @id @default(uuid())
+  projectId    String
+  project      Project             @relation(fields: [projectId], references: [id])
+  type         BudgetRequestType
+  requestedById String
+  requestedBy  User                @relation("BudgetRequester", fields: [requestedById], references: [id])
+  totalAmount  Decimal             @db.Decimal(18, 2)
+  extraAmount  Decimal?            @db.Decimal(18, 2)
+  newEndDate   DateTime?
+  reason       String?
+  status       BudgetRequestStatus @default(draft)
+  submittedAt  DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  items        BudgetRequestItem[]
+
+  @@index([projectId])
+  @@index([status])
+  @@map("budget_requests")
+}
+
+model BudgetRequestItem {
+  id         String          @id @default(uuid())
+  requestId  String
+  request    BudgetRequest   @relation(fields: [requestId], references: [id])
+  phaseId    String?
+  phase      Phase?          @relation(fields: [phaseId], references: [id])
+  categoryId String
+  category   ExpenseCategory @relation(fields: [categoryId], references: [id])
+  oldAmount  Decimal         @default(0) @db.Decimal(18, 2)
+  newAmount  Decimal         @db.Decimal(18, 2)
+
+  @@map("budget_request_items")
+}
+
+// ───────────── Timesheet dan biaya tenaga kerja ─────────────
+
+model Timesheet {
+  id           String          @id @default(uuid())
+  userId       String
+  user         User            @relation("TimesheetOwner", fields: [userId], references: [id])
+  weekStart    DateTime        @db.Date
+  status       TimesheetStatus @default(draft)
+  submittedAt  DateTime?
+  approvedBy   String?
+  approvedAt   DateTime?
+  rejectReason String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  entries      TimesheetEntry[]
+
+  @@unique([userId, weekStart])
+  @@index([status])
+  @@map("timesheets")
+}
+
+model TimesheetEntry {
+  id          String    @id @default(uuid())
+  timesheetId String
+  timesheet   Timesheet @relation(fields: [timesheetId], references: [id])
+  taskId      String
+  task        Task      @relation(fields: [taskId], references: [id])
+  workDate    DateTime  @db.Date
+  hours       Decimal   @db.Decimal(5, 2)
+  note        String?
+  // SECRET: snapshot of hours x rate, set when timesheet is approved.
+  // Never expose per-person values to admin/finance; aggregate only.
+  costAmount  Decimal?  @db.Decimal(18, 2)
+
+  @@index([timesheetId])
+  @@index([taskId])
+  @@map("timesheet_entries")
+}
+
+// SECRET: readable/writable by super_admin only.
+model HourlyCost {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation("HourlyCostUser", fields: [userId], references: [id])
+  ratePerHour   Decimal  @db.Decimal(18, 2)
+  effectiveFrom DateTime @db.Date
+  setBy         String
+  createdAt     DateTime @default(now())
+
+  @@index([userId, effectiveFrom])
+  @@map("hourly_costs")
+}
+
+// ───────────── Pengeluaran dan pembayaran ─────────────
+
+model Expense {
+  id                String          @id @default(uuid())
+  requesterId       String
+  requester         User            @relation("ExpenseRequester", fields: [requesterId], references: [id])
+  projectId         String
+  project           Project         @relation(fields: [projectId], references: [id])
+  taskId            String?
+  task              Task?           @relation(fields: [taskId], references: [id])
+  costCenterId      String
+  costCenter        CostCenter      @relation(fields: [costCenterId], references: [id])
+  categoryId        String
+  category          ExpenseCategory @relation(fields: [categoryId], references: [id])
+  amount            Decimal         @db.Decimal(18, 2)
+  expenseDate       DateTime        @db.Date
+  vendor            String?
+  note              String?
+  status            ExpenseStatus   @default(draft)
+  isLargeAmount     Boolean         @default(false)
+  limitAtSubmission Decimal?        @db.Decimal(18, 2)
+  submittedAt       DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  payment           Payment?
+  flags             ExpenseFlag[]
+
+  @@index([requesterId])
+  @@index([projectId])
+  @@index([status])
+  @@index([isLargeAmount, status])
+  @@map("expenses")
+}
+
+model Payment {
+  id          String        @id @default(uuid())
+  expenseId   String        @unique
+  expense     Expense       @relation(fields: [expenseId], references: [id])
+  paidBy      String
+  paidAt      DateTime
+  method      PaymentMethod
+  referenceNo String?
+  amount      Decimal       @db.Decimal(18, 2)
+  createdAt   DateTime      @default(now())
+
+  @@map("payments")
+}
+
+model ExpenseFlag {
+  id                 String   @id @default(uuid())
+  expenseId          String
+  expense            Expense  @relation(fields: [expenseId], references: [id])
+  flagType           FlagType
+  relatedExpenseIds  String[]
+  detectedAt         DateTime @default(now())
+  reviewedBy         String?
+
+  @@index([expenseId])
+  @@map("expense_flags")
+}
+
+// ───────────── Persetujuan dan batas Nominal Besar ─────────────
+
+model ApprovalRule {
+  id           String       @id @default(uuid())
+  documentType DocumentType
+  stepOrder    Int
+  role         Role
+
+  @@unique([documentType, stepOrder])
+  @@map("approval_rules")
+}
+
+model Approval {
+  id           String         @id @default(uuid())
+  documentType DocumentType
+  documentId   String
+  stepOrder    Int
+  role         Role
+  status       ApprovalStatus @default(menunggu)
+  approverId   String?
+  approver     User?          @relation("Approver", fields: [approverId], references: [id])
+  actedAt      DateTime?
+  reason       String?
+  createdAt    DateTime       @default(now())
+
+  @@unique([documentType, documentId, stepOrder])
+  @@index([documentType, documentId])
+  @@index([role, status])
+  @@map("approvals")
+}
+
+model ApprovalLimit {
+  id            String      @id @default(uuid())
+  amount        Decimal     @db.Decimal(18, 2)
+  effectiveFrom DateTime    @default(now())
+  status        LimitStatus @default(berlaku)
+  confirmedAt   DateTime?
+
+  @@map("approval_limit")
+}
+
+// Application must enforce: proposerRole != confirmerRole, both in (admin, finance),
+// proposedBy != confirmedBy. Add a CHECK constraint in a raw SQL migration as well.
+model LimitChangeRequest {
+  id            String            @id @default(uuid())
+  oldAmount     Decimal           @db.Decimal(18, 2)
+  newAmount     Decimal           @db.Decimal(18, 2)
+  reason        String?
+  proposedBy    String
+  proposer      User              @relation("LimitProposer", fields: [proposedBy], references: [id])
+  proposerRole  Role
+  confirmedBy   String?
+  confirmer     User?             @relation("LimitConfirmer", fields: [confirmedBy], references: [id])
+  confirmerRole Role?
+  status        LimitChangeStatus @default(menunggu_konfirmasi)
+  createdAt     DateTime          @default(now())
+  decidedAt     DateTime?
+
+  @@index([status])
+  @@map("limit_change_requests")
+}
+
+// ───────────── Notifikasi, log, pengaturan ─────────────
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  type      String
+  title     String
+  body      String
+  refType   String?
+  refId     String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model DeviceToken {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  fcmToken   String   @unique
+  platform   Platform
+  lastSeenAt DateTime @default(now())
+
+  @@map("device_tokens")
+}
+
+// Append-only. Never update or delete rows.
+model ActivityLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String
+  module     String
+  entityId   String?
+  beforeData Json?
+  afterData  Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([module, createdAt])
+  @@index([userId, createdAt])
+  @@map("activity_logs")
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
+}
