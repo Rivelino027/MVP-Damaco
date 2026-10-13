@@ -1,4 +1,5 @@
-// BudgetFlow - Prisma schema (PostgreSQL)
+// BudgetFlow - Prisma schema (MySQL 8.0.16+)
+// Long text uses @db.Text; relatedExpenseIds is JSON (MySQL has no arrays).
 // Money: Decimal(18,2), Rupiah. Roles: one role per account.
 
 generator client {
@@ -6,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -166,7 +167,7 @@ model User {
   departmentId String?
   department   Department? @relation("UserDepartment", fields: [departmentId], references: [id])
   jobTitle     String?
-  avatarUrl    String?
+  avatarUrl    String? @db.Text
   isActive     Boolean     @default(true)
   lastLoginAt  DateTime?
   createdAt    DateTime    @default(now())
@@ -201,7 +202,7 @@ model RefreshToken {
   userId     String
   user       User      @relation(fields: [userId], references: [id])
   tokenHash  String    @unique
-  deviceInfo String?
+  deviceInfo String? @db.Text
   expiresAt  DateTime
   revokedAt  DateTime?
   createdAt  DateTime  @default(now())
@@ -254,7 +255,7 @@ model ProjectType {
 model Project {
   id              String        @id @default(uuid())
   name            String
-  description     String?
+  description     String? @db.Text
   departmentId    String
   department      Department    @relation(fields: [departmentId], references: [id])
   costCenterId    String
@@ -335,7 +336,7 @@ model Task {
   phaseId        String?
   phase          Phase?     @relation(fields: [phaseId], references: [id])
   title          String
-  description    String?
+  description    String? @db.Text
   assigneeId     String?
   assignee       User?      @relation("TaskAssignee", fields: [assigneeId], references: [id])
   status         TaskStatus @default(belum_mulai)
@@ -361,7 +362,7 @@ model TaskChecklist {
   id     String  @id @default(uuid())
   taskId String
   task   Task    @relation(fields: [taskId], references: [id])
-  text   String
+  text   String @db.Text
   isDone Boolean @default(false)
 
   @@map("task_checklists")
@@ -373,7 +374,7 @@ model TaskComment {
   task      Task     @relation(fields: [taskId], references: [id])
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  body      String
+  body      String @db.Text
   createdAt DateTime @default(now())
 
   @@map("task_comments")
@@ -384,7 +385,7 @@ model Attachment {
   id         String          @id @default(uuid())
   ownerType  AttachmentOwner
   ownerId    String
-  fileUrl    String
+  fileUrl    String @db.Text
   fileName   String
   mimeType   String
   size       Int
@@ -439,7 +440,7 @@ model BudgetRequest {
   totalAmount  Decimal             @db.Decimal(18, 2)
   extraAmount  Decimal?            @db.Decimal(18, 2)
   newEndDate   DateTime?
-  reason       String?
+  reason       String? @db.Text
   status       BudgetRequestStatus @default(draft)
   submittedAt  DateTime?
   createdAt    DateTime            @default(now())
@@ -477,7 +478,7 @@ model Timesheet {
   submittedAt  DateTime?
   approvedBy   String?
   approvedAt   DateTime?
-  rejectReason String?
+  rejectReason String? @db.Text
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
@@ -496,7 +497,7 @@ model TimesheetEntry {
   task        Task      @relation(fields: [taskId], references: [id])
   workDate    DateTime  @db.Date
   hours       Decimal   @db.Decimal(5, 2)
-  note        String?
+  note        String? @db.Text
   // SECRET: snapshot of hours x rate, set when timesheet is approved.
   // Never expose per-person values to admin/finance; aggregate only.
   costAmount  Decimal?  @db.Decimal(18, 2)
@@ -537,7 +538,7 @@ model Expense {
   amount            Decimal         @db.Decimal(18, 2)
   expenseDate       DateTime        @db.Date
   vendor            String?
-  note              String?
+  note              String? @db.Text
   status            ExpenseStatus   @default(draft)
   isLargeAmount     Boolean         @default(false)
   limitAtSubmission Decimal?        @db.Decimal(18, 2)
@@ -574,7 +575,7 @@ model ExpenseFlag {
   expenseId          String
   expense            Expense  @relation(fields: [expenseId], references: [id])
   flagType           FlagType
-  relatedExpenseIds  String[]
+  relatedExpenseIds  Json?
   detectedAt         DateTime @default(now())
   reviewedBy         String?
 
@@ -604,7 +605,7 @@ model Approval {
   approverId   String?
   approver     User?          @relation("Approver", fields: [approverId], references: [id])
   actedAt      DateTime?
-  reason       String?
+  reason       String? @db.Text
   createdAt    DateTime       @default(now())
 
   @@unique([documentType, documentId, stepOrder])
@@ -629,7 +630,7 @@ model LimitChangeRequest {
   id            String            @id @default(uuid())
   oldAmount     Decimal           @db.Decimal(18, 2)
   newAmount     Decimal           @db.Decimal(18, 2)
-  reason        String?
+  reason        String? @db.Text
   proposedBy    String
   proposer      User              @relation("LimitProposer", fields: [proposedBy], references: [id])
   proposerRole  Role
@@ -652,7 +653,7 @@ model Notification {
   user      User      @relation(fields: [userId], references: [id])
   type      String
   title     String
-  body      String
+  body      String @db.Text
   refType   String?
   refId     String?
   readAt    DateTime?
@@ -666,7 +667,7 @@ model DeviceToken {
   id         String   @id @default(uuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id])
-  fcmToken   String   @unique
+  fcmToken   String   @unique @db.VarChar(255)
   platform   Platform
   lastSeenAt DateTime @default(now())
 
