@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
@@ -16,6 +16,15 @@ async function bootstrap() {
 
   // Keamanan: Aktifkan helmet
   app.use(helmet());
+
+  // Validasi input global
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: false,
+    }),
+  );
 
   // Keamanan: CORS terbatas
   const allowedOrigins = process.env.CORS_ORIGIN

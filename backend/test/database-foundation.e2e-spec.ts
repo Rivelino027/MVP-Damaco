@@ -1,6 +1,11 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
+const testDbUrl =
+  process.env.DATABASE_URL_TEST ||
+  'mysql://root@127.0.0.1:3306/budgetflow_test';
+process.env.DATABASE_URL = testDbUrl;
+
 import { PrismaClient, Role } from '@prisma/client';
 import { execSync } from 'child_process';
 import * as path from 'path';
@@ -243,6 +248,7 @@ describe('Database Foundation Integration Tests (MariaDB 10.4)', () => {
       const output = execSync('npx prisma migrate dev', {
         cwd: backendDir,
         encoding: 'utf8',
+        env: { ...process.env, DATABASE_URL: testDbUrl },
       });
 
       expect(output).toMatch(
@@ -267,6 +273,7 @@ describe('Database Foundation Integration Tests (MariaDB 10.4)', () => {
       execSync('npx prisma db seed', {
         cwd: backendDir,
         encoding: 'utf8',
+        env: { ...process.env, DATABASE_URL: testDbUrl },
       });
 
       const countsAfter = {

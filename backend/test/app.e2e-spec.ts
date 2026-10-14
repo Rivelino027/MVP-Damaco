@@ -1,6 +1,11 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
+const testDbUrl =
+  process.env.DATABASE_URL_TEST ||
+  'mysql://root@127.0.0.1:3306/budgetflow_test';
+process.env.DATABASE_URL = testDbUrl;
+
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import helmet from 'helmet';
