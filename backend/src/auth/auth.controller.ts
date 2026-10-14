@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Ip,
+  NotFoundException,
   Post,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -73,6 +74,9 @@ export class AuthController {
     summary: 'Endpoint pengujian otorisasi khusus super_admin',
   })
   async testSuperAdminOnly() {
+    if (process.env.NODE_ENV === 'production') {
+      throw new NotFoundException('Endpoint tidak ditemukan');
+    }
     return {
       message: 'Akses diizinkan untuk peran super_admin',
     };
