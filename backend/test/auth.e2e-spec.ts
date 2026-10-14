@@ -69,28 +69,49 @@ describe('Auth Module & Guards Integration Tests (e2e)', () => {
     itDepartmentId = itDept.id;
     financeDepartmentId = finDept.id;
 
-    // Bersihkan data uji sebelumnya jika ada
-    const allEmails = [
-      testUsers.pengguna.email,
-      testUsers.admin.email,
-      testUsers.finance.email,
-      testUsers.superAdmin.email,
-      testUsers.inactive.email,
-      'e2e-ratelimit@perusahaan.com',
-    ];
+    // Helper pembersih data uji dengan pengaman database target
+    const cleanTestData = async () => {
+      const currentDbUrl = process.env.DATABASE_URL || '';
+      if (!currentDbUrl.includes('budgetflow_test')) {
+        throw new Error(
+          `Operasi pembersihan dibatalkan: DATABASE_URL bukan 'budgetflow_test'! (got: ${currentDbUrl})`,
+        );
+      }
+      const dbNameResult: any = await prisma.$queryRawUnsafe(
+        'SELECT DATABASE() AS db',
+      );
+      const currentDbName = dbNameResult[0]?.db;
+      if (currentDbName !== 'budgetflow_test') {
+        throw new Error(
+          `Operasi pembersihan dibatalkan: Database aktif adalah '${currentDbName}', bukan 'budgetflow_test'!`,
+        );
+      }
 
-    await prisma.refreshToken.deleteMany({
-      where: { user: { email: { in: allEmails } } },
-    });
-    // Nonaktifkan trigger append-only di sesi ini agar cleanup tes bisa berjalan
-    await prisma.$executeRawUnsafe('SET @allow_activity_log_delete = 1');
-    await prisma.activityLog.deleteMany({
-      where: { user: { email: { in: allEmails } } },
-    });
-    await prisma.$executeRawUnsafe('SET @allow_activity_log_delete = NULL');
-    await prisma.user.deleteMany({
-      where: { email: { in: allEmails } },
-    });
+      const allEmails = [
+        testUsers.pengguna.email,
+        testUsers.admin.email,
+        testUsers.finance.email,
+        testUsers.superAdmin.email,
+        testUsers.inactive.email,
+        'e2e-ratelimit@perusahaan.com',
+      ];
+
+      await prisma.refreshToken.deleteMany({
+        where: { user: { email: { in: allEmails } } },
+      });
+
+      // TRUNCATE TABLE activity_logs mereset tabel tanpa memicu trigger BEFORE DELETE
+      await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 0');
+      await prisma.$executeRawUnsafe('TRUNCATE TABLE `activity_logs`');
+      await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1');
+
+      await prisma.user.deleteMany({
+        where: { email: { in: allEmails } },
+      });
+    };
+
+    // Bersihkan data uji sebelumnya jika ada
+    await cleanTestData();
 
     // Buat akun khusus untuk pengujian
     const passwordHash = await argon2.hash(TEST_PASSWORD);
@@ -178,26 +199,34 @@ describe('Auth Module & Guards Integration Tests (e2e)', () => {
       await app.close();
     }
     if (prisma) {
-      const allEmails = [
-        testUsers.pengguna.email,
-        testUsers.admin.email,
-        testUsers.finance.email,
-        testUsers.superAdmin.email,
-        testUsers.inactive.email,
-        'e2e-ratelimit@perusahaan.com',
-      ];
-      await prisma.refreshToken.deleteMany({
-        where: { user: { email: { in: allEmails } } },
-      });
-      // Nonaktifkan trigger append-only di sesi ini agar cleanup tes bisa berjalan
-      await prisma.$executeRawUnsafe('SET @allow_activity_log_delete = 1');
-      await prisma.activityLog.deleteMany({
-        where: { user: { email: { in: allEmails } } },
-      });
-      await prisma.$executeRawUnsafe('SET @allow_activity_log_delete = NULL');
-      await prisma.user.deleteMany({
-        where: { email: { in: allEmails } },
-      });
+      const currentDbUrl = process.env.DATABASE_URL || '';
+      if (!currentDbUrl.includes('budgetflow_test')) {
+        throw new Error(
+          `Operasi pembersihan dibatalkan: DATABASE_URL bukan 'budgetflow_test'! (got: ${currentDbUrl})`,
+        );
+      }
+      const dbNameResult: any = await prisma.$queryRawUnsafe(
+        'SELECT DATABASE() AS db',
+      );
+      if (dbNameResult[0]?.db === 'budgetflow_test') {
+        const allEmails = [
+          testUsers.pengguna.email,
+          testUsers.admin.email,
+          testUsers.finance.email,
+          testUsers.superAdmin.email,
+          testUsers.inactive.email,
+          'e2e-ratelimit@perusahaan.com',
+        ];
+        await prisma.refreshToken.deleteMany({
+          where: { user: { email: { in: allEmails } } },
+        });
+        await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 0');
+        await prisma.$executeRawUnsafe('TRUNCATE TABLE `activity_logs`');
+        await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1');
+        await prisma.user.deleteMany({
+          where: { email: { in: allEmails } },
+        });
+      }
       await prisma.$disconnect();
     }
   }, 30000);

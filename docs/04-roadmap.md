@@ -35,3 +35,5 @@ Addendum formal, impor anggaran dari Excel, template proyek, komitmen biaya (PO)
 ## Catatan fase
 
 (Agen: tambahkan ringkasan singkat di sini setiap akhir fase: apa yang selesai, keputusan penting, utang teknis.)
+
+- Produksi: aplikasi harus memakai user database terbatas (bukan root): hanya SELECT, INSERT, UPDATE, DELETE. Tanpa DROP, TRUNCATE, ALTER, TRIGGER. Hapus /auth/test-super-admin atau matikan di production.

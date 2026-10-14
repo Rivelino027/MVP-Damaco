@@ -56,6 +56,35 @@ describe('Database Foundation Integration Tests (MariaDB 10.4)', () => {
         }),
       ).rejects.toThrow(/activity_logs is append-only/);
     });
+
+    it('session variable @allow_activity_log_delete tidak memberi pengecualian pada DELETE', async () => {
+      const log = await prisma.activityLog.create({
+        data: {
+          action: 'TEST_SESSION_VAR_BYPASS',
+          module: 'TEST_TRIGGER',
+          beforeData: { status: 'created' },
+        },
+      });
+
+      // Uji pada koneksi pool biasa
+      await prisma.$executeRawUnsafe('SET @allow_activity_log_delete = 1');
+      await expect(
+        prisma.activityLog.delete({
+          where: { id: log.id },
+        }),
+      ).rejects.toThrow(/activity_logs is append-only/);
+      await prisma.$executeRawUnsafe('SET @allow_activity_log_delete = NULL');
+
+      // Uji dalam transaksi interaktif (menjamin SET dan DELETE berada di sesi koneksi yang sama persis)
+      await expect(
+        prisma.$transaction(async (tx) => {
+          await tx.$executeRawUnsafe('SET @allow_activity_log_delete = 1');
+          await tx.activityLog.delete({
+            where: { id: log.id },
+          });
+        }),
+      ).rejects.toThrow(/activity_logs is append-only/);
+    });
   });
 
   describe('2. CHECK Constraint pada limit_change_requests', () => {
