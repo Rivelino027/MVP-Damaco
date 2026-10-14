@@ -10,6 +10,7 @@ import { Role } from '@prisma/client';
 import * as argon2 from 'argon2';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
@@ -145,6 +146,7 @@ export class AuthService implements OnModuleInit {
 
     return {
       ...tokens,
+      mustChangePassword: user.mustChangePassword,
       user: {
         id: user.id,
         name: user.name,
@@ -153,6 +155,7 @@ export class AuthService implements OnModuleInit {
         departmentId: user.departmentId,
         jobTitle: user.jobTitle,
         avatarUrl: user.avatarUrl,
+        mustChangePassword: user.mustChangePassword,
         lastLoginAt: user.lastLoginAt,
       },
     };
@@ -252,8 +255,77 @@ export class AuthService implements OnModuleInit {
       departmentName: user.department?.name ?? null,
       jobTitle: user.jobTitle,
       avatarUrl: user.avatarUrl,
+      mustChangePassword: user.mustChangePassword,
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
+    };
+  }
+
+  /**
+   * Mengganti kata sandi pengguna (semua peran) dan menghapus penanda mustChangePassword.
+   */
+  async changePassword(userId: string, dto: ChangePasswordDto, ip: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.isActive || user.deletedAt !== null) {
+      throw new ForbiddenException('Akun tidak aktif, hubungi administrator');
+    }
+
+    // 1. Verifikasi kecocokan kata sandi lama
+    const isOldPasswordValid = await argon2.verify(
+      user.passwordHash,
+      dto.oldPassword,
+    );
+    if (!isOldPasswordValid) {
+      throw new BadRequestException('Kata sandi lama tidak sesuai');
+    }
+
+    // 2. Validasi kata sandi baru tidak boleh sama dengan kata sandi lama
+    if (dto.oldPassword === dto.newPassword) {
+      throw new BadRequestException(
+        'Kata sandi baru tidak boleh sama dengan kata sandi lama',
+      );
+    }
+
+    const isSameAsCurrent = await argon2.verify(
+      user.passwordHash,
+      dto.newPassword,
+    );
+    if (isSameAsCurrent) {
+      throw new BadRequestException(
+        'Kata sandi baru tidak boleh sama dengan kata sandi saat ini',
+      );
+    }
+
+    // 3. Hash kata sandi baru
+    const passwordHash = await argon2.hash(dto.newPassword);
+
+    // 4. Perbarui data pengguna dan hapus penanda mustChangePassword
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        mustChangePassword: false,
+      },
+    });
+
+    // 5. Cabut seluruh refresh token pengguna itu
+    await this.prisma.refreshToken.deleteMany({
+      where: { userId: user.id },
+    });
+
+    // 6. Catat log aktivitas (tanpa kata sandi)
+    await this.logActivity(user.id, 'CHANGE_PASSWORD_SUCCESS', ip, {
+      userId: user.id,
+      email: user.email,
+      mustChangePassword: false,
+    });
+
+    return {
+      message: 'Kata sandi berhasil diperbarui',
+      mustChangePassword: false,
     };
   }
 

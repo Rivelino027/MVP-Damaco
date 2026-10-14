@@ -68,6 +68,7 @@ export class JwtAuthGuard implements CanActivate {
         role: true,
         departmentId: true,
         isActive: true,
+        mustChangePassword: true,
         deletedAt: true,
       },
     });
@@ -81,7 +82,34 @@ export class JwtAuthGuard implements CanActivate {
       email: user.email,
       role: user.role,
       departmentId: user.departmentId,
+      mustChangePassword: user.mustChangePassword,
     };
+
+    // Jika mustChangePassword = true, hanya /auth/change-password, /auth/me, dan /auth/logout yang boleh diakses
+    if (user.mustChangePassword) {
+      const fullPath = (
+        (request.baseUrl || '') + (request.path || request.url || '')
+      ).split('?')[0];
+
+      const allowedPaths = [
+        '/auth/change-password',
+        '/auth/me',
+        '/auth/logout',
+      ];
+
+      const isAllowed = allowedPaths.some(
+        (allowed) =>
+          fullPath === allowed ||
+          fullPath === `${allowed}/` ||
+          fullPath.endsWith(allowed),
+      );
+
+      if (!isAllowed) {
+        throw new ForbiddenException(
+          'Pengguna wajib mengganti kata sandi terlebih dahulu',
+        );
+      }
+    }
 
     return true;
   }

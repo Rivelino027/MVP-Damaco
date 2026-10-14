@@ -15,6 +15,7 @@ import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { Public } from './decorators/public.decorator';
 import { Roles } from './decorators/roles.decorator';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -65,6 +66,20 @@ export class AuthController {
   @ApiOperation({ summary: 'Melihat profil pengguna yang sedang login' })
   async getMe(@CurrentUser('id') userId: string) {
     return this.authService.getMe(userId);
+  }
+
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Mengganti kata sandi akun pengguna (wajib login)',
+  })
+  async changePassword(
+    @CurrentUser('id') userId: string,
+    @Body() dto: ChangePasswordDto,
+    @Ip() ip: string,
+  ) {
+    return this.authService.changePassword(userId, dto, ip);
   }
 
   @Get('test-super-admin')

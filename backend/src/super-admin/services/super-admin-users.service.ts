@@ -23,6 +23,7 @@ export const USER_SELECT = {
   jobTitle: true,
   avatarUrl: true,
   isActive: true,
+  mustChangePassword: true,
   lastLoginAt: true,
   createdAt: true,
   updatedAt: true,
@@ -507,17 +508,21 @@ export class SuperAdminUsersService {
       throw new NotFoundException('Pengguna tidak ditemukan');
     }
 
-    // 1. Buat token acak sekali pakai dan hash token tersebut
-    const rawToken = crypto.randomBytes(32).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 jam
+    // 1. Buat password sementara acak 16 karakter
+    const temporaryPassword = this.generateSecurePassword(16);
+    const passwordHash = await argon2.hash(temporaryPassword);
 
-    // 2. Simpan tokenHash ke password_resets
-    await this.prisma.passwordReset.create({
+    // 2. Simpan passwordHash baru dan set mustChangePassword = true
+    const beforeData = {
+      id: targetUser.id,
+      mustChangePassword: targetUser.mustChangePassword,
+    };
+
+    await this.prisma.user.update({
+      where: { id: targetUser.id },
       data: {
-        userId: targetUser.id,
-        tokenHash,
-        expiresAt,
+        passwordHash,
+        mustChangePassword: true,
       },
     });
 
@@ -526,27 +531,28 @@ export class SuperAdminUsersService {
       where: { userId: targetUser.id },
     });
 
-    // 4. Catat log aktivitas (JANGAN PERNAH menyertakan rawToken atau tokenHash!)
+    // 4. Catat log aktivitas (JANGAN PERNAH menyimpan atau mencatat password di log!)
     await this.auditLogger.log({
       userId: currentUserId,
       action: 'RESET_PASSWORD',
       module: 'USER_MANAGEMENT',
       entityId: targetUser.id,
-      beforeData: null,
+      beforeData,
       afterData: {
         userId: targetUser.id,
         email: targetUser.email,
-        expiresAt: expiresAt.toISOString(),
+        mustChangePassword: true,
       },
       ipAddress: ip,
     });
 
-    // 5. Kembalikan respons yang TIDAK memuat password_hash atau token
+    // 5. Kembalikan respons dengan temporaryPassword SEKALI di respons
     return {
       message:
-        'Permintaan reset kata sandi berhasil diproses dan seluruh sesi aktif telah dicabut',
+        'Kata sandi sementara berhasil dibuat. Pengguna wajib mengganti kata sandi saat pertama kali masuk.',
       userId: targetUser.id,
-      expiresAt,
+      temporaryPassword,
+      mustChangePassword: true,
     };
   }
 }

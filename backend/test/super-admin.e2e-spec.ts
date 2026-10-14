@@ -514,6 +514,8 @@ describe('Super Admin Module Integration Tests (e2e)', () => {
   // ─────────────────────────────────────────────────────────────
   describe('3. Reset Password & Keamanan Token', () => {
     let testSubjectUser: any;
+    let temporaryPassword: string;
+    let subjectAccessToken: string;
 
     beforeAll(async () => {
       testSubjectUser = await prisma.user.create({
@@ -524,12 +526,13 @@ describe('Super Admin Module Integration Tests (e2e)', () => {
           role: Role.pengguna,
           departmentId: itDepartmentId,
           isActive: true,
+          mustChangePassword: false,
         },
       });
     });
 
-    it('Mereset kata sandi menghasilkan record password_resets, mencabut refresh token, dan respons tidak memuat password_hash atau token', async () => {
-      // Simpan refresh token dummy
+    it('Reset password menghasilkan temporaryPassword sekali di respons, mencabut semua refresh token, menetapkan mustChangePassword = true, dan audit log bebas dari password', async () => {
+      // Sisipkan dummy refresh token untuk membuktikan pencabutan
       await prisma.refreshToken.create({
         data: {
           userId: testSubjectUser.id,
@@ -543,29 +546,37 @@ describe('Super Admin Module Integration Tests (e2e)', () => {
         .set('Authorization', `Bearer ${superAdminToken}`)
         .expect(200);
 
-      // Respons tidak boleh memuat passwordHash, password, token, tokenHash, atau resetToken
+      // Respons harus memuat temporaryPassword, userId, mustChangePassword
       expect(response.body).toHaveProperty('message');
       expect(response.body).toHaveProperty('userId', testSubjectUser.id);
-      expect(response.body).not.toHaveProperty('token');
-      expect(response.body).not.toHaveProperty('rawToken');
+      expect(response.body).toHaveProperty('temporaryPassword');
+      expect(response.body).toHaveProperty('mustChangePassword', true);
+      expect(typeof response.body.temporaryPassword).toBe('string');
+      expect(response.body.temporaryPassword.length).toBeGreaterThanOrEqual(16);
+
+      // Tidak boleh ada passwordHash atau tokenHash di respons
+      expect(response.body).not.toHaveProperty('passwordHash');
+      expect(response.body).not.toHaveProperty('password_hash');
       expect(response.body).not.toHaveProperty('tokenHash');
       expect(response.body).not.toHaveProperty('resetToken');
-      expect(response.body).not.toHaveProperty('passwordHash');
 
-      // Refresh token harus telah dicabut
+      // Simpan untuk tes berikutnya
+      temporaryPassword = response.body.temporaryPassword;
+
+      // Refresh token harus telah dicabut sepenuhnya
       const tokensCount = await prisma.refreshToken.count({
         where: { userId: testSubjectUser.id },
       });
       expect(tokensCount).toBe(0);
 
-      // Record password_resets harus ada
-      const resetRecord = await prisma.passwordReset.findFirst({
-        where: { userId: testSubjectUser.id },
+      // mustChangePassword harus benar-benar tersimpan di database
+      const userInDb = await prisma.user.findUnique({
+        where: { id: testSubjectUser.id },
+        select: { mustChangePassword: true },
       });
-      expect(resetRecord).not.toBeNull();
-      expect(resetRecord?.tokenHash).toBeDefined();
+      expect(userInDb?.mustChangePassword).toBe(true);
 
-      // Log aktivitas harus tercatat dan tidak memuat token
+      // Audit log harus ada dan tidak memuat kata sandi
       const log = await prisma.activityLog.findFirst({
         where: {
           action: 'RESET_PASSWORD',
@@ -573,9 +584,139 @@ describe('Super Admin Module Integration Tests (e2e)', () => {
         },
       });
       expect(log).not.toBeNull();
-      const afterDataStr = JSON.stringify(log?.afterData || {});
-      expect(afterDataStr).not.toMatch(/token/i);
+      const afterDataStr = JSON.stringify(log?.afterData ?? {});
       expect(afterDataStr).not.toMatch(/password/i);
+      expect(afterDataStr).not.toMatch(/tokenHash/i);
+    });
+
+    it('Login dengan temporaryPassword berhasil dan respons memuat mustChangePassword = true', async () => {
+      const loginRes = await request(app.getHttpServer())
+        .post('/auth/login')
+        .set('X-Client', 'mobile')
+        .send({
+          email: testSubjectUser.email,
+          password: temporaryPassword,
+        })
+        .expect(200);
+
+      expect(loginRes.body).toHaveProperty('accessToken');
+      expect(loginRes.body).toHaveProperty('mustChangePassword', true);
+
+      // Simpan access token untuk tes berikutnya
+      subjectAccessToken = loginRes.body.accessToken;
+    });
+
+    it('Akun mustChangePassword = true diblokir mengakses endpoint lain (403 Forbidden)', async () => {
+      // Endpoint yang tidak diizinkan harus diblokir
+      const blockedEndpoints = [
+        { method: 'get', url: '/users' },
+        { method: 'get', url: '/departments' },
+      ];
+
+      for (const ep of blockedEndpoints) {
+        const res = await (request(app.getHttpServer()) as any)[ep.method](
+          ep.url,
+        )
+          .set('Authorization', `Bearer ${subjectAccessToken}`)
+          .expect(403);
+
+        expect(res.body.message).toMatch(
+          /wajib mengganti kata sandi/i,
+        );
+      }
+    });
+
+    it('Akun mustChangePassword = true masih dapat mengakses /auth/me (200 OK)', async () => {
+      await request(app.getHttpServer())
+        .get('/auth/me')
+        .set('Authorization', `Bearer ${subjectAccessToken}`)
+        .expect(200);
+    });
+
+    it('change-password menolak kata sandi lama yang salah (400 Bad Request)', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/auth/change-password')
+        .set('Authorization', `Bearer ${subjectAccessToken}`)
+        .send({
+          oldPassword: 'KataSandiSalah123!',
+          newPassword: 'KataSandiBaru123!',
+        })
+        .expect(400);
+
+      expect(res.body.message).toMatch(/kata sandi lama tidak sesuai/i);
+    });
+
+    it('change-password menolak kata sandi baru kurang dari 10 karakter (400 Bad Request)', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/auth/change-password')
+        .set('Authorization', `Bearer ${subjectAccessToken}`)
+        .send({
+          oldPassword: temporaryPassword,
+          newPassword: 'Pendek1!',
+        })
+        .expect(400);
+
+      expect(res.body.message).toBeDefined();
+    });
+
+    it('change-password menolak kata sandi baru sama dengan yang lama (400 Bad Request)', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/auth/change-password')
+        .set('Authorization', `Bearer ${subjectAccessToken}`)
+        .send({
+          oldPassword: temporaryPassword,
+          newPassword: temporaryPassword,
+        })
+        .expect(400);
+
+      expect(res.body.message).toBeDefined();
+    });
+
+    it('change-password berhasil: mustChangePassword menjadi false, refresh token lama dicabut', async () => {
+      // Pastikan ada refresh token aktif sebelum ganti password
+      const tokensBefore = await prisma.refreshToken.count({
+        where: { userId: testSubjectUser.id },
+      });
+
+      const newPassword = 'KataSandiBaruAman123!';
+      const res = await request(app.getHttpServer())
+        .post('/auth/change-password')
+        .set('Authorization', `Bearer ${subjectAccessToken}`)
+        .send({
+          oldPassword: temporaryPassword,
+          newPassword,
+        })
+        .expect(200);
+
+      expect(res.body).toHaveProperty('message');
+      expect(res.body).toHaveProperty('mustChangePassword', false);
+
+      // Verifikasi di database: mustChangePassword = false
+      const userInDb = await prisma.user.findUnique({
+        where: { id: testSubjectUser.id },
+        select: { mustChangePassword: true },
+      });
+      expect(userInDb?.mustChangePassword).toBe(false);
+
+      // Semua refresh token harus telah dicabut
+      const tokensAfter = await prisma.refreshToken.count({
+        where: { userId: testSubjectUser.id },
+      });
+      expect(tokensAfter).toBe(0);
+    });
+
+    it('Setelah ganti password, login normal berhasil tanpa penanda mustChangePassword = true', async () => {
+      const loginRes = await request(app.getHttpServer())
+        .post('/auth/login')
+        .set('X-Client', 'mobile')
+        .send({
+          email: testSubjectUser.email,
+          password: 'KataSandiBaruAman123!',
+        })
+        .expect(200);
+
+      expect(loginRes.body).toHaveProperty('accessToken');
+      expect(loginRes.body).toHaveProperty('mustChangePassword', false);
     });
   });
 
