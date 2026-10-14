@@ -6,7 +6,7 @@ Aplikasi manajemen proyek + budgeting untuk tim internal PT. Dunia Maya Communic
 
 | Bagian | Lokasi | Teknologi |
 |---|---|---|
-| Backend | `backend/` | NestJS, TypeScript strict, PostgreSQL, Prisma |
+| Backend | `backend/` | NestJS, TypeScript strict, MySQL/MariaDB (MariaDB 10.4+ atau MySQL 8.0.16+), Prisma |
 | Web Admin | `apps/web_admin/` | React, Vite, TypeScript, Tailwind, shadcn/ui, TanStack Query/Table, React Hook Form + Zod, Zustand, Recharts |
 | Mobile | `apps/mobile/` | Flutter (iOS, Android), Riverpod, go_router, Dio, flutter_secure_storage, local_auth |
 | Design tokens | `design-tokens/` | Sumber tunggal warna, font, radius |

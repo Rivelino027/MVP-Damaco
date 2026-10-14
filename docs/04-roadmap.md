@@ -5,7 +5,7 @@ Kerjakan satu alur utuh dulu: login, Super Admin membuat akun, Pengguna mengisi 
 
 | Status | Fase | Isi | Definisi selesai |
 |---|---|---|---|
-| [ ] | 0. Persiapan | Aturan proyek, tokens, repo monorepo, Docker, backend `/health`, CI dasar | Backend hidup, `prisma validate` lolos, README jelas |
+| [ ] | 0. Persiapan | Aturan proyek, tokens, repo monorepo, MySQL lokal (XAMPP), backend `/health`, CI dasar | Backend hidup, `prisma validate` lolos, README jelas |
 | [ ] | 1. Fondasi | Migrasi, trigger dan CHECK, seed, auth, guard peran, manajemen pengguna, departemen, cost center, master data, audit log, web admin dasar | Login 4 peran, 403 benar, Super Admin bisa membuat akun |
 | [ ] | 2. Proyek dan task | Proyek, fase, milestone, task, anggota, lampiran, kanban | Admin membuat proyek dan task, pengguna melihat task miliknya |
 | [ ] | 3. Timesheet | Isi jam, persetujuan Admin, biaya per jam (Super Admin), agregat biaya tenaga kerja | Snapshot biaya benar, tidak ada kebocoran per orang |

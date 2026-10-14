@@ -15,7 +15,9 @@ const CATEGORY_COLORS = {
 function generateStrongPassword(): string {
   // Menghasilkan password acak berkekuatan tinggi (huruf besar, kecil, angka, simbol)
   const bytes = crypto.randomBytes(18).toString('base64');
-  return bytes.replace(/[+/=]/g, (m) => (m === '+' ? 'X' : m === '/' ? 'Y' : '!'));
+  return bytes.replace(/[+/=]/g, (m) =>
+    m === '+' ? 'X' : m === '/' ? 'Y' : '!',
+  );
 }
 
 async function main() {
@@ -42,9 +44,17 @@ async function main() {
 
   // 2. Cost Centers
   const costCentersData = [
-    { code: 'IT-Product-01', name: 'IT Product Development', departmentName: 'IT' },
+    {
+      code: 'IT-Product-01',
+      name: 'IT Product Development',
+      departmentName: 'IT',
+    },
     { code: 'FIN-01', name: 'Finance Operations', departmentName: 'Finance' },
-    { code: 'OPS-01', name: 'General Operations', departmentName: 'Operasional' },
+    {
+      code: 'OPS-01',
+      name: 'General Operations',
+      departmentName: 'Operasional',
+    },
     { code: 'HR-01', name: 'Human Resources', departmentName: 'HR' },
   ];
 
@@ -92,9 +102,21 @@ async function main() {
     { documentType: DocumentType.expense, stepOrder: 1, role: Role.admin },
     { documentType: DocumentType.expense, stepOrder: 2, role: Role.finance },
     // Anggaran: Admin -> Finance -> Super Admin
-    { documentType: DocumentType.budget_request, stepOrder: 1, role: Role.admin },
-    { documentType: DocumentType.budget_request, stepOrder: 2, role: Role.finance },
-    { documentType: DocumentType.budget_request, stepOrder: 3, role: Role.super_admin },
+    {
+      documentType: DocumentType.budget_request,
+      stepOrder: 1,
+      role: Role.admin,
+    },
+    {
+      documentType: DocumentType.budget_request,
+      stepOrder: 2,
+      role: Role.finance,
+    },
+    {
+      documentType: DocumentType.budget_request,
+      stepOrder: 3,
+      role: Role.super_admin,
+    },
   ];
 
   for (const rule of approvalRulesData) {
@@ -124,9 +146,13 @@ async function main() {
         confirmedAt: new Date(),
       },
     });
-    console.log('✓ Batas Nominal Besar awal Rp5.000.000 (status berlaku) dibuat');
+    console.log(
+      '✓ Batas Nominal Besar awal Rp5.000.000 (status berlaku) dibuat',
+    );
   } else {
-    console.log(`✓ Batas Nominal Besar sudah ada (Rp${existingLimit.amount.toString()}), melewati`);
+    console.log(
+      `✓ Batas Nominal Besar sudah ada (Rp${existingLimit.amount.toString()}), melewati`,
+    );
   }
 
   // 6. Pengaturan Aplikasi (app_settings)
@@ -151,7 +177,9 @@ async function main() {
       },
     });
   }
-  console.log('✓ Pengaturan aplikasi (ambang serapan 80, jendela deteksi 7 hari) siap');
+  console.log(
+    '✓ Pengaturan aplikasi (ambang serapan 80, jendela deteksi 7 hari) siap',
+  );
 
   // 7. Akun Awal (4 peran, satu akun per peran)
   const usersToSeed = [
@@ -198,7 +226,9 @@ async function main() {
     });
 
     if (existing) {
-      console.log(`✓ Akun ${u.email} (${u.role}) sudah ada, password tidak diubah.`);
+      console.log(
+        `✓ Akun ${u.email} (${u.role}) sudah ada, password tidak diubah.`,
+      );
     } else {
       const plainPassword = generateStrongPassword();
       const passwordHash = await argon2.hash(plainPassword);
@@ -227,7 +257,9 @@ async function main() {
   // CETAK PASSWORD SEKALI SAJA KE TERMINAL JIKA ADA AKUN BARU
   if (newlyCreatedAccounts.length > 0) {
     console.log('\n' + '='.repeat(80));
-    console.log(' [PENTING] KREDENSIAL AKUN AWAL BUDGETFLOW (DICETAK SEKALI KE TERMINAL)');
+    console.log(
+      ' [PENTING] KREDENSIAL AKUN AWAL BUDGETFLOW (DICETAK SEKALI KE TERMINAL)',
+    );
     console.log('='.repeat(80));
     for (const acc of newlyCreatedAccounts) {
       console.log(`Peran        : ${acc.role}`);
@@ -237,7 +269,9 @@ async function main() {
       console.log('-'.repeat(80));
     }
     console.log('CATATAN: Salin dan simpan password ini sekarang.');
-    console.log('Password tidak disimpan di file teks dan tidak akan dicetak ulang.');
+    console.log(
+      'Password tidak disimpan di file teks dan tidak akan dicetak ulang.',
+    );
     console.log('='.repeat(80) + '\n');
   }
 

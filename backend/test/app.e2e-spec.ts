@@ -40,11 +40,11 @@ describe('BudgetFlow API (e2e)', () => {
     });
 
     await app.init();
-  });
+  }, 30000);
 
   afterAll(async () => {
     await app.close();
-  });
+  }, 30000);
 
   describe('Health Endpoint (/health)', () => {
     it('GET /health - harus mengembalikan 200 OK dengan database connected', async () => {

@@ -1,8 +1,8 @@
-# BudgetFlow: Database (PostgreSQL)
+# BudgetFlow: Database (MySQL/MariaDB)
 
 Sumber kebenaran struktur: `backend/prisma/schema.prisma`. Dokumen ini menjelaskan maksud tabel dan aturan yang tidak bisa dinyatakan oleh Prisma.
 
-Semua tabel punya `id` (UUID), `created_at`, dan umumnya `updated_at`. Tabel user, proyek, task, departemen memakai `deleted_at` (soft delete). Uang `NUMERIC(18,2)` dalam Rupiah.
+Semua tabel punya `id` (UUID), `created_at`, dan umumnya `updated_at`. Tabel user, proyek, task, departemen memakai `deleted_at` (soft delete). Uang `DECIMAL(18,2)` dalam Rupiah. Kolom teks panjang memakai `TEXT` (`@db.Text`), dan `relatedExpenseIds` disimpan sebagai `JSON` (karena MySQL/MariaDB tidak mendukung tipe array native).
 
 ## 1. Daftar tabel
 
@@ -51,7 +51,7 @@ Semua tabel punya `id` (UUID), `created_at`, dan umumnya `updated_at`. Tabel use
 |---|---|
 | `expenses` | Pengeluaran, `is_large_amount`, `limit_at_submission`, status 7 tahap |
 | `payments` | Satu pembayaran per pengeluaran, dicatat Finance |
-| `expense_flags` | Penanda `terindikasi_dipecah` atau `vendor_baru` dari job deteksi |
+| `expense_flags` | Penanda `terindikasi_dipecah` atau `vendor_baru` dari job deteksi; `relatedExpenseIds` disimpan sebagai `JSON` (MySQL/MariaDB tidak mendukung array native) |
 
 ### Persetujuan dan batas
 | Tabel | Isi |
@@ -65,7 +65,7 @@ Semua tabel punya `id` (UUID), `created_at`, dan umumnya `updated_at`. Tabel use
 | Tabel | Isi |
 |---|---|
 | `notifications`, `device_tokens` | Notifikasi in-app dan token FCM |
-| `activity_logs` | Audit, append-only, `before_data` dan `after_data` (JSONB) |
+| `activity_logs` | Audit, append-only, `before_data` dan `after_data` (JSON) |
 | `app_settings` | Pengaturan (ambang serapan, jendela deteksi pemecahan, periode anggaran) |
 
 ## 2. Relasi utama
@@ -89,7 +89,7 @@ Tiga hubungan inti produk: task terhubung ke anggaran (lewat fase dan kategori),
 | Aturan | Cara |
 |---|---|
 | `limit_change_requests`: `proposer_role` dan `confirmer_role` hanya admin atau finance, keduanya berbeda, `proposed_by <> confirmed_by` | CHECK constraint (migrasi SQL mentah) plus validasi service |
-| `activity_logs` tidak boleh diubah atau dihapus | Trigger yang menolak UPDATE dan DELETE |
+| `activity_logs` tidak boleh diubah atau dihapus | Trigger `BEFORE UPDATE` dan `BEFORE DELETE` yang menolak modifikasi dengan `SIGNAL SQLSTATE '45000'` |
 | `hourly_costs` dan `timesheet_entries.cost_amount` hanya dibaca super_admin | Service khusus, tidak ada endpoint per orang untuk peran lain. Admin dan Finance memakai query agregat terpisah |
 | Agregat biaya tenaga kerja untuk Finance | Jika proyek punya kurang dari 2 orang yang mencatat jam, tampilkan di level departemen |
 | `expenses.is_large_amount` dan `limit_at_submission` | Dihitung saat pengajuan, tidak dihitung ulang kemudian |
@@ -98,6 +98,25 @@ Tiga hubungan inti produk: task terhubung ke anggaran (lewat fase dan kategori),
 | Anggaran terkunci (`is_baseline`, `locked_at`) tidak boleh diedit | Perubahan lewat `budget_requests` |
 | Task assignee harus anggota proyek, cost center harus milik departemen proyek | Validasi di service |
 | Pengaju tidak boleh menyetujui dokumennya sendiri | Validasi di service persetujuan |
+
+```sql
+-- Trigger append-only activity_logs pada MySQL/MariaDB
+DELIMITER $$
+CREATE TRIGGER trg_activity_logs_no_update
+BEFORE UPDATE ON activity_logs
+FOR EACH ROW
+BEGIN
+  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'activity_logs is append-only: UPDATE is not allowed';
+END$$
+
+CREATE TRIGGER trg_activity_logs_no_delete
+BEFORE DELETE ON activity_logs
+FOR EACH ROW
+BEGIN
+  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'activity_logs is append-only: DELETE is not allowed';
+END$$
+DELIMITER ;
+```
 
 ## 4. Seed awal
 

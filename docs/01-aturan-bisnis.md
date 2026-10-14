@@ -11,7 +11,7 @@ Tidak ada klien, invoice, atau margin. Aplikasi wajib online (tanpa mode offline
 |---|---|---|
 | Mobile (iOS, Android) | Pengguna, Admin, Finance | Flutter |
 | Web Admin | Admin, Finance, Super Admin | React + Vite + TypeScript |
-| Backend | Semua | NestJS + PostgreSQL + Prisma |
+| Backend | Semua | NestJS + MySQL/MariaDB + Prisma |
 
 Akun Pengguna tidak boleh login ke Web Admin (pesan: "Akun Pengguna tidak dapat masuk ke Web Admin").
 Akun Super Admin hanya login di Web Admin.
@@ -127,7 +127,7 @@ Job terjadwal menandai pengeluaran dari pengaju, vendor, atau kategori yang sama
 - Validasi unggahan: tipe file, ukuran maksimum, nama file diacak.
 - `activity_logs` append-only: tidak boleh diubah atau dihapus.
 - Soft delete untuk user, proyek, master data. Tidak ada hard delete pada data bertransaksi.
-- Uang memakai `NUMERIC(18,2)`, dalam Rupiah.
+- Uang memakai `DECIMAL(18,2)`, dalam Rupiah.
 
 ## 12. Notifikasi
 
