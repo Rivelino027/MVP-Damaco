@@ -5,6 +5,9 @@ import LoginPage from '@/pages/login/LoginPage';
 import ChangePasswordPage from '@/pages/change-password/ChangePasswordPage';
 import PlaceholderPage from '@/pages/placeholder/PlaceholderPage';
 import UserManagementPage from '@/pages/super-admin/users/UserManagementPage';
+import DepartmentCostCenterPage from '@/pages/super-admin/departments/DepartmentCostCenterPage';
+import MasterDataPage from '@/pages/super-admin/master-data/MasterDataPage';
+import ActivityLogsPage from '@/pages/super-admin/activity-logs/ActivityLogsPage';
 import ForbiddenPage from '@/pages/forbidden/ForbiddenPage';
 import NotFoundPage from '@/pages/not-found/NotFoundPage';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -144,7 +147,7 @@ export default function App() {
                 path="/sistem/departemen"
                 element={
                   <RoleRoute allowedRoles={['super_admin']}>
-                    <PlaceholderPage title="Departemen & Cost Center" category="Sistem" />
+                    <DepartmentCostCenterPage />
                   </RoleRoute>
                 }
               />
@@ -152,7 +155,7 @@ export default function App() {
                 path="/sistem/master-data"
                 element={
                   <RoleRoute allowedRoles={['super_admin']}>
-                    <PlaceholderPage title="Master Data" category="Sistem" />
+                    <MasterDataPage />
                   </RoleRoute>
                 }
               />
@@ -160,7 +163,7 @@ export default function App() {
                 path="/sistem/log-aktivitas"
                 element={
                   <RoleRoute allowedRoles={['super_admin']}>
-                    <PlaceholderPage title="Log Aktivitas" category="Sistem" />
+                    <ActivityLogsPage />
                   </RoleRoute>
                 }
               />

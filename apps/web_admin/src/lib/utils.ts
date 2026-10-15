@@ -90,3 +90,78 @@ export function formatDateTime(dateStr: string | null | undefined): string {
   }
 }
 
+/**
+ * Format mata uang Rupiah Indonesia (contoh: Rp 500.000.000)
+ */
+export function formatCurrency(amount: number | string | null | undefined): string {
+  if (amount === null || amount === undefined || amount === '') return 'Rp 0';
+  const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+  if (isNaN(num)) return 'Rp 0';
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(num);
+}
+
+/**
+ * Membersihkan data audit log (beforeData & afterData) secara rekursif
+ * untuk mencegah tampilan kredensial atau informasi rahasia di UI (defense in depth)
+ */
+export function sanitizeAuditData(data: unknown): unknown {
+  if (data === null || data === undefined) {
+    return data;
+  }
+
+  if (Array.isArray(data)) {
+    return data.map((item) => sanitizeAuditData(item));
+  }
+
+  if (typeof data !== 'object') {
+    return data;
+  }
+
+  const sensitiveKeyPatterns = [
+    'password',
+    'passwordhash',
+    'password_hash',
+    'token',
+    'tokenhash',
+    'token_hash',
+    'refreshtoken',
+    'refresh_token',
+    'rawtoken',
+    'initialpassword',
+    'initial_password',
+    'secret',
+  ];
+
+  const clean: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+    if (key === 'constructor' || typeof value === 'function') {
+      continue;
+    }
+
+    const normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const isSensitive = sensitiveKeyPatterns.some(
+      (pattern) =>
+        normalizedKey === pattern.replace(/[^a-z0-9]/g, '') ||
+        normalizedKey.includes('password') ||
+        normalizedKey.includes('token') ||
+        normalizedKey.includes('secret') ||
+        normalizedKey.includes('hash'),
+    );
+
+    if (isSensitive) {
+      continue;
+    }
+
+    clean[key] = sanitizeAuditData(value);
+  }
+
+  return clean;
+}
+
+
+
