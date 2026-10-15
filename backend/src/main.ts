@@ -26,19 +26,14 @@ async function bootstrap() {
     }),
   );
 
-  // Keamanan: CORS terbatas
-  const allowedOrigins = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
-    : [
-        'http://127.0.0.1:5173',
-        'http://localhost:5173',
-        'http://127.0.0.1:3000',
-        'http://localhost:3000',
-      ];
+  // Keamanan: CORS terbatas (daftar origin dari env CORS_ORIGINS, dipisah koma)
+  const allowedOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+    : ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
   app.enableCors({
     origin: (origin, callback) => {
-      // Izinkan request tanpa origin (seperti mobile apps, curl, postman) atau origin yang terdaftar
+      // Izinkan request tanpa origin (mobile apps, curl, Postman) atau origin yang terdaftar
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -46,7 +41,7 @@ async function bootstrap() {
       }
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Client', 'Accept'],
     credentials: true,
   });
 

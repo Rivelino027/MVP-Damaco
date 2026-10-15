@@ -15,12 +15,9 @@ import { AppModule } from '../src/app.module';
 describe('BudgetFlow API (e2e)', () => {
   let app: INestApplication;
 
-  const allowedOrigins = [
-    'http://127.0.0.1:5173',
-    'http://localhost:5173',
-    'http://127.0.0.1:3000',
-    'http://localhost:3000',
-  ];
+  const allowedOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+    : ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -40,7 +37,7 @@ describe('BudgetFlow API (e2e)', () => {
         }
       },
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Client', 'Accept'],
       credentials: true,
     });
 
