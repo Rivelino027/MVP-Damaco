@@ -4,6 +4,7 @@ import { ToastContainer } from '@/components/shared';
 import LoginPage from '@/pages/login/LoginPage';
 import ChangePasswordPage from '@/pages/change-password/ChangePasswordPage';
 import PlaceholderPage from '@/pages/placeholder/PlaceholderPage';
+import UserManagementPage from '@/pages/super-admin/users/UserManagementPage';
 import ForbiddenPage from '@/pages/forbidden/ForbiddenPage';
 import NotFoundPage from '@/pages/not-found/NotFoundPage';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -119,7 +120,7 @@ export default function App() {
                 path="/sistem/pengguna"
                 element={
                   <RoleRoute allowedRoles={['super_admin']}>
-                    <PlaceholderPage title="Manajemen Pengguna" category="Sistem" />
+                    <UserManagementPage />
                   </RoleRoute>
                 }
               />

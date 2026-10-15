@@ -16,3 +16,9 @@ export function registerToastListener(listener: ToastListener | null) {
 export function toast(type: ToastType, message: string) {
   addToastExternal?.(type, message);
 }
+
+toast.success = (message: string) => addToastExternal?.('success', message);
+toast.error = (message: string) => addToastExternal?.('error', message);
+toast.warning = (message: string) => addToastExternal?.('warning', message);
+toast.info = (message: string) => addToastExternal?.('info', message);
+
