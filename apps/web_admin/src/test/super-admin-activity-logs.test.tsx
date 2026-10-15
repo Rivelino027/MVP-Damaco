@@ -330,37 +330,103 @@ describe('Super Admin - Activity Logs Page & Audit Diff', () => {
     ).toBeInTheDocument();
   });
 
-  it('sanitizeAuditData membersihkan kunci sensitif (password, token, hash, secret) dari data (defense in depth)', () => {
+  it('sanitizeAuditData: kunci sensitif TETAP ada namun nilainya diganti "[disembunyikan]"', () => {
     const rawData = {
       id: 'usr-123',
       name: 'Super Secret User',
       password: 'plain_password_123',
-      password_hash: 'argon2$12345678',
+      passwordHash: 'argon2$12345678',
       token: 'jwt.token.here',
       refreshToken: 'refresh.token.here',
-      secretKey: 'my-super-secret-key',
+      accessToken: 'access.token.here',
+      secret: 'my-super-secret',
+      temporaryPassword: 'temp_pass_xyz',
+      initialPassword: 'init_pass_abc',
       profile: {
         bio: 'Hello world',
-        nestedPassword: 'should_be_stripped',
+        nestedPassword: 'nested_should_be_masked',
       },
     };
 
     const sanitized = sanitizeAuditData(rawData) as Record<string, any>;
 
+    // Kunci non-sensitif tetap apa adanya
     expect(sanitized.id).toBe('usr-123');
     expect(sanitized.name).toBe('Super Secret User');
     expect(sanitized.profile.bio).toBe('Hello world');
 
-    // Sensitive keys must be completely removed
-    expect(sanitized.password).toBeUndefined();
-    expect(sanitized.password_hash).toBeUndefined();
-    expect(sanitized.token).toBeUndefined();
-    expect(sanitized.refreshToken).toBeUndefined();
-    expect(sanitized.secretKey).toBeUndefined();
-    expect(sanitized.profile.nestedPassword).toBeUndefined();
+    // Kunci sensitif TETAP ADA (tidak dihapus)
+    expect('password' in sanitized).toBe(true);
+    expect('passwordHash' in sanitized).toBe(true);
+    expect('token' in sanitized).toBe(true);
+    expect('refreshToken' in sanitized).toBe(true);
+    expect('accessToken' in sanitized).toBe(true);
+    expect('secret' in sanitized).toBe(true);
+    expect('temporaryPassword' in sanitized).toBe(true);
+    expect('initialPassword' in sanitized).toBe(true);
+    expect('nestedPassword' in sanitized.profile).toBe(true);
+
+    // Nilainya WAJIB diganti "[disembunyikan]"
+    expect(sanitized.password).toBe('[disembunyikan]');
+    expect(sanitized.passwordHash).toBe('[disembunyikan]');
+    expect(sanitized.token).toBe('[disembunyikan]');
+    expect(sanitized.refreshToken).toBe('[disembunyikan]');
+    expect(sanitized.accessToken).toBe('[disembunyikan]');
+    expect(sanitized.secret).toBe('[disembunyikan]');
+    expect(sanitized.temporaryPassword).toBe('[disembunyikan]');
+    expect(sanitized.initialPassword).toBe('[disembunyikan]');
+    expect(sanitized.profile.nestedPassword).toBe('[disembunyikan]');
   });
 
-  it('ActivityLogDetailModal tidak pernah menampilkan kunci sensitif di DOM meskipun ada di log item', () => {
+  it('sanitizeAuditData: immutable — objek asli tidak dimutasi', () => {
+    const original = {
+      id: 'usr-999',
+      password: 'original_plain',
+      name: 'Immutable Test',
+    };
+    const originalPasswordBefore = original.password;
+
+    const sanitized = sanitizeAuditData(original) as Record<string, any>;
+
+    // Hasil sanitasi mengandung placeholder
+    expect(sanitized.password).toBe('[disembunyikan]');
+    // Objek asli tidak berubah
+    expect(original.password).toBe(originalPasswordBefore);
+    expect(original.password).toBe('original_plain');
+    // Hasil adalah objek BARU, bukan referensi yang sama
+    expect(sanitized).not.toBe(original);
+  });
+
+  it('sanitizeAuditData: rekursi pada array bersarang', () => {
+    const data = [
+      { id: '1', token: 'tok-aaa', name: 'Alice' },
+      { id: '2', password: 'pw-bbb', name: 'Bob' },
+      { id: '3', name: 'Charlie', nested: { secret: 'shhh' } },
+    ];
+
+    const result = sanitizeAuditData(data) as Record<string, any>[];
+
+    expect(result[0].id).toBe('1');
+    expect(result[0].name).toBe('Alice');
+    expect(result[0].token).toBe('[disembunyikan]');
+
+    expect(result[1].id).toBe('2');
+    expect(result[1].name).toBe('Bob');
+    expect(result[1].password).toBe('[disembunyikan]');
+
+    expect(result[2].name).toBe('Charlie');
+    expect(result[2].nested.secret).toBe('[disembunyikan]');
+  });
+
+  it('sanitizeAuditData: aman terhadap null, undefined, dan primitif', () => {
+    expect(sanitizeAuditData(null)).toBeNull();
+    expect(sanitizeAuditData(undefined)).toBeUndefined();
+    expect(sanitizeAuditData(42)).toBe(42);
+    expect(sanitizeAuditData('plain string')).toBe('plain string');
+    expect(sanitizeAuditData(true)).toBe(true);
+  });
+
+  it('ActivityLogDetailModal: nilai rahasia TIDAK pernah muncul di DOM; placeholder [disembunyikan] ditampilkan', () => {
     const sensitiveLog: ActivityLogItem = {
       id: 'log-sensitive',
       userId: 'usr-admin-1',
@@ -369,14 +435,16 @@ describe('Super Admin - Activity Logs Page & Audit Diff', () => {
       entityId: 'usr-test',
       beforeData: {
         id: 'usr-test',
-        password_hash: 'old_secret_hash',
-        secret_token: 'secret_token_123',
+        passwordHash: 'old_secret_argon2_hash',
+        secret: 'super_secret_key_xyz',
         email: 'test@example.com',
       },
       afterData: {
         id: 'usr-test',
         password: 'raw_password_danger',
-        refreshToken: 'refresh_tok_danger',
+        refreshToken: 'refresh_tok_danger_abc',
+        accessToken: 'access_tok_danger_def',
+        temporaryPassword: 'temp_pw_danger_ghi',
         email: 'test_updated@example.com',
       },
       ipAddress: '127.0.0.1',
@@ -392,17 +460,28 @@ describe('Super Admin - Activity Logs Page & Audit Diff', () => {
       />,
     );
 
-    // Non-sensitive data is displayed
+    // Data non-sensitif tampil normal
     expect(screen.getByText(/"email": "test@example.com"/i)).toBeInTheDocument();
     expect(
       screen.getByText(/"email": "test_updated@example.com"/i),
     ).toBeInTheDocument();
 
-    // Sensitive data must NOT appear anywhere in the document
-    expect(screen.queryByText(/old_secret_hash/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/secret_token_123/i)).not.toBeInTheDocument();
+    // Nama kunci sensitif TETAP muncul (field terlihat oleh auditor)
+    expect(screen.getByText(/"passwordHash"/i)).toBeInTheDocument();
+    expect(screen.getByText(/"password"/i)).toBeInTheDocument();
+    expect(screen.getByText(/"refreshToken"/i)).toBeInTheDocument();
+
+    // Nilai rahasia TIDAK boleh muncul di mana pun
+    expect(screen.queryByText(/old_secret_argon2_hash/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/super_secret_key_xyz/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/raw_password_danger/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/refresh_tok_danger/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/refresh_tok_danger_abc/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/access_tok_danger_def/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/temp_pw_danger_ghi/i)).not.toBeInTheDocument();
+
+    // Placeholder [disembunyikan] muncul (bukan 0, bukan undefined)
+    const placeholders = screen.getAllByText(/\[disembunyikan\]/i);
+    expect(placeholders.length).toBeGreaterThanOrEqual(1);
   });
 
   it('menampilkan state kosong ketika tidak ada log yang ditemukan', async () => {

@@ -314,9 +314,12 @@ export function ActivityLogDetailModal({
           <div className="flex items-start gap-3 p-3 rounded-[var(--radius-input)] bg-navy-tint/40 border border-navy/20">
             <Shield className="h-4 w-4 text-navy shrink-0 mt-0.5" />
             <div className="text-xs text-navy leading-normal">
-              <span className="font-semibold">Catatan Kepatuhan & Keamanan:</span> Seluruh
+              <span className="font-semibold">Catatan Kepatuhan &amp; Keamanan:</span> Seluruh
               log aktivitas tersimpan dalam tabel append-only tanpa izin modifikasi atau
-              penghapusan. Nilai sensitif seperti kata sandi dan token otomatis disaring.
+              penghapusan. Nilai sensitif (seperti kata sandi dan token) ditampilkan sebagai{' '}
+              <code className="font-mono bg-navy/10 px-1 rounded">[disembunyikan]</code>{' '}
+              — nama field tetap terlihat untuk keperluan audit, namun nilainya tidak pernah
+              dikirim ke klien.
             </div>
           </div>
         </div>
