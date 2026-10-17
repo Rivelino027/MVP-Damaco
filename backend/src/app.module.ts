@@ -7,8 +7,10 @@ import { SuperAdminModule } from './super-admin/super-admin.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
+import { ProjectsModule } from './projects/projects.module';
+
 @Module({
-  imports: [PrismaModule, HealthModule, AuthModule, SuperAdminModule],
+  imports: [PrismaModule, HealthModule, AuthModule, SuperAdminModule, ProjectsModule],
   providers: [
     {
       provide: APP_GUARD,
