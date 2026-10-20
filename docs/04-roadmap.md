@@ -39,3 +39,4 @@ Addendum formal, impor anggaran dari Excel, template proyek, komitmen biaya (PO)
 - Produksi: aplikasi harus memakai user database terbatas (bukan root): hanya SELECT, INSERT, UPDATE, DELETE. Tanpa DROP, TRUNCATE, ALTER, TRIGGER. Hapus /auth/test-super-admin atau matikan di production.
 
 - Fase 2 (sebagian): API proyek, anggota, fase, milestone selesai. Menyusul: task (6B) dan halaman web (6C).
+- Fase 2: API task, checklist, komentar, dan lampiran selesai. Menyusul halaman web proyek dan task (6C).
