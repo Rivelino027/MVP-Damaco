@@ -9,7 +9,10 @@ import {
 } from 'class-validator';
 
 export class CreateProjectDto {
-  @ApiProperty({ description: 'Nama proyek', example: 'Redesign Portal Internal' })
+  @ApiProperty({
+    description: 'Nama proyek',
+    example: 'Redesign Portal Internal',
+  })
   @IsNotEmpty({ message: 'Nama proyek wajib diisi' })
   @IsString({ message: 'Nama proyek harus berupa string' })
   @MaxLength(255, { message: 'Nama proyek maksimal 255 karakter' })
@@ -21,7 +24,8 @@ export class CreateProjectDto {
   description?: string;
 
   @ApiPropertyOptional({
-    description: 'ID Departemen proyek (wajib untuk Super Admin, otomatis departemen sendiri untuk Admin)',
+    description:
+      'ID Departemen proyek (wajib untuk Super Admin, otomatis departemen sendiri untuk Admin)',
   })
   @IsOptional()
   @IsUUID('4', { message: 'ID departemen harus berupa UUID' })
@@ -37,13 +41,27 @@ export class CreateProjectDto {
   @IsUUID('4', { message: 'ID jenis proyek harus berupa UUID' })
   projectTypeId?: string;
 
-  @ApiPropertyOptional({ description: 'Tanggal mulai proyek', example: '2026-01-01' })
+  @ApiPropertyOptional({
+    description: 'Tanggal mulai proyek',
+    example: '2026-01-01',
+  })
   @IsOptional()
-  @IsDateString({}, { message: 'Format tanggal mulai tidak valid (gunakan format YYYY-MM-DD)' })
+  @IsDateString(
+    {},
+    { message: 'Format tanggal mulai tidak valid (gunakan format YYYY-MM-DD)' },
+  )
   startDate?: string;
 
-  @ApiPropertyOptional({ description: 'Tanggal selesai proyek', example: '2026-06-30' })
+  @ApiPropertyOptional({
+    description: 'Tanggal selesai proyek',
+    example: '2026-06-30',
+  })
   @IsOptional()
-  @IsDateString({}, { message: 'Format tanggal selesai tidak valid (gunakan format YYYY-MM-DD)' })
+  @IsDateString(
+    {},
+    {
+      message: 'Format tanggal selesai tidak valid (gunakan format YYYY-MM-DD)',
+    },
+  )
   endDate?: string;
 }

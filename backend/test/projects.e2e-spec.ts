@@ -281,6 +281,7 @@ describe('Projects Module Integration Tests (e2e)', () => {
       },
       { secret: jwtSecret, expiresIn: '15m' },
     );
+    void penggunaBToken;
 
     adminAToken = await jwtService.signAsync(
       {
@@ -373,7 +374,9 @@ describe('Projects Module Integration Tests (e2e)', () => {
       });
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toContain('Cost center tidak aktif atau tidak sesuai');
+    expect(res.body.message).toContain(
+      'Cost center tidak aktif atau tidak sesuai',
+    );
   });
 
   it('4. admin tidak bisa membuat proyek di departemen lain (400)', async () => {
@@ -387,7 +390,9 @@ describe('Projects Module Integration Tests (e2e)', () => {
       });
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toContain('Admin hanya dapat membuat proyek di departemennya sendiri');
+    expect(res.body.message).toContain(
+      'Admin hanya dapat membuat proyek di departemennya sendiri',
+    );
   });
 
   it('5. admin berhasil membuat proyek di departemennya (status diajukan)', async () => {
@@ -486,10 +491,14 @@ describe('Projects Module Integration Tests (e2e)', () => {
       .send({ status: 'berjalan' });
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toContain('Status proyek tidak dapat diubah melalui endpoint ini');
+    expect(res.body.message).toContain(
+      'Status proyek tidak dapat diubah melalui endpoint ini',
+    );
 
     // Pastikan status di database tetap 'diajukan'
-    const check = await prisma.project.findUnique({ where: { id: projectAId } });
+    const check = await prisma.project.findUnique({
+      where: { id: projectAId },
+    });
     expect(check?.status).toBe(ProjectStatus.diajukan);
   });
 
@@ -504,7 +513,9 @@ describe('Projects Module Integration Tests (e2e)', () => {
       .send({ userId: penggunaBUser.id });
 
     expect(adminTryRes.status).toBe(400);
-    expect(adminTryRes.body.message).toContain('Admin hanya dapat menambahkan anggota dari departemen yang sama');
+    expect(adminTryRes.body.message).toContain(
+      'Admin hanya dapat menambahkan anggota dari departemen yang sama',
+    );
 
     // Super Admin mencoba menambah Pengguna B ke Proyek A -> 201 (diizinkan lintas departemen)
     const saRes = await request(app.getHttpServer())
@@ -532,7 +543,9 @@ describe('Projects Module Integration Tests (e2e)', () => {
       .send({ userId: financeUser.id });
 
     expect(financeRes.status).toBe(400);
-    expect(financeRes.body.message).toContain('Hanya pengguna dengan peran pengguna atau admin');
+    expect(financeRes.body.message).toContain(
+      'Hanya pengguna dengan peran pengguna atau admin',
+    );
   });
 
   it('13. admin menambahkan pengguna A sebagai anggota proyek A', async () => {
@@ -558,24 +571,33 @@ describe('Projects Module Integration Tests (e2e)', () => {
   });
 
   it('15. mengeluarkan anggota yang masih punya task ditolak (400)', async () => {
-    // Buat task yang di-assign ke pengguna A dalam proyek A
-    const task = await prisma.task.create({
-      data: {
+    // Buat task asli via API yang di-assign ke pengguna A dalam proyek A
+    const taskRes = await request(app.getHttpServer())
+      .post('/tasks')
+      .set('Authorization', `Bearer ${adminAToken}`)
+      .send({
         projectId: projectAId,
         title: 'Task Pengujian Anggota',
         assigneeId: penggunaAUser.id,
-      },
-    });
+      });
+
+    expect(taskRes.status).toBe(201);
+    const taskId = taskRes.body.id;
 
     const removeRes = await request(app.getHttpServer())
       .delete(`/projects/${projectAId}/members/${penggunaAUser.id}`)
       .set('Authorization', `Bearer ${adminAToken}`);
 
     expect(removeRes.status).toBe(400);
-    expect(removeRes.body.message).toContain('masih memiliki tugas (task) yang ditugaskan');
+    expect(removeRes.body.message).toContain(
+      'masih memiliki tugas (task) yang ditugaskan',
+    );
 
-    // Hapus task uji agar penggunaA bisa dites pada kondisi berikutnya jika perlu
-    await prisma.task.delete({ where: { id: task.id } });
+    // Hapus task uji via API agar penggunaA bisa dites pada kondisi berikutnya jika perlu
+    const deleteRes = await request(app.getHttpServer())
+      .delete(`/tasks/${taskId}`)
+      .set('Authorization', `Bearer ${adminAToken}`);
+    expect(deleteRes.status).toBe(200);
   });
 
   // -------------------------------------------------------------
@@ -597,7 +619,9 @@ describe('Projects Module Integration Tests (e2e)', () => {
       });
 
     expect(invalidRes.status).toBe(400);
-    expect(invalidRes.body.message).toContain('tidak boleh setelah tanggal selesai proyek');
+    expect(invalidRes.body.message).toContain(
+      'tidak boleh setelah tanggal selesai proyek',
+    );
 
     // Buat fase yang valid
     const validRes = await request(app.getHttpServer())
@@ -626,27 +650,37 @@ describe('Projects Module Integration Tests (e2e)', () => {
 
     expect(res.status).toBe(201);
     milestoneAId = res.body.id;
+    void milestoneAId;
   });
 
   it('18. hapus fase ditolak jika masih punya task atau item anggaran (400)', async () => {
-    // Buat task di fase ini
-    const task = await prisma.task.create({
-      data: {
+    // Buat task asli di fase ini via API
+    const taskRes = await request(app.getHttpServer())
+      .post('/tasks')
+      .set('Authorization', `Bearer ${adminAToken}`)
+      .send({
         projectId: projectAId,
         phaseId: phaseAId,
         title: 'Task dalam Fase 1',
-      },
-    });
+      });
+
+    expect(taskRes.status).toBe(201);
+    const taskId = taskRes.body.id;
 
     const res = await request(app.getHttpServer())
       .delete(`/projects/${projectAId}/phases/${phaseAId}`)
       .set('Authorization', `Bearer ${adminAToken}`);
 
     expect(res.status).toBe(400);
-    expect(res.body.message).toContain('Fase tidak dapat dihapus karena masih memiliki tugas atau item anggaran');
+    expect(res.body.message).toContain(
+      'Fase tidak dapat dihapus karena masih memiliki tugas atau item anggaran',
+    );
 
-    // Bersihkan task
-    await prisma.task.delete({ where: { id: task.id } });
+    // Bersihkan task via API
+    const deleteRes = await request(app.getHttpServer())
+      .delete(`/tasks/${taskId}`)
+      .set('Authorization', `Bearer ${adminAToken}`);
+    expect(deleteRes.status).toBe(200);
   });
 
   // -------------------------------------------------------------
@@ -670,7 +704,9 @@ describe('Projects Module Integration Tests (e2e)', () => {
       .set('Authorization', `Bearer ${adminAToken}`)
       .send({ name: 'Fase Baru' });
     expect(phaseRes.status).toBe(400);
-    expect(phaseRes.body.message).toContain('Proyek yang sudah ditutup tidak dapat diubah fasenya');
+    expect(phaseRes.body.message).toContain(
+      'Proyek yang sudah ditutup tidak dapat diubah fasenya',
+    );
 
     // 4. Coba tambah milestone pada proyek tertutup -> 400
     const msRes = await request(app.getHttpServer())
@@ -678,7 +714,9 @@ describe('Projects Module Integration Tests (e2e)', () => {
       .set('Authorization', `Bearer ${adminAToken}`)
       .send({ name: 'Milestone Baru', dueDate: '2026-03-01' });
     expect(msRes.status).toBe(400);
-    expect(msRes.body.message).toContain('Proyek yang sudah ditutup tidak dapat diubah milestonenya');
+    expect(msRes.body.message).toContain(
+      'Proyek yang sudah ditutup tidak dapat diubah milestonenya',
+    );
 
     // 5. Coba tambah anggota pada proyek tertutup -> 400
     const memberRes = await request(app.getHttpServer())
@@ -686,7 +724,9 @@ describe('Projects Module Integration Tests (e2e)', () => {
       .set('Authorization', `Bearer ${superAdminToken}`)
       .send({ userId: adminBUser.id });
     expect(memberRes.status).toBe(400);
-    expect(memberRes.body.message).toContain('Proyek yang sudah ditutup tidak dapat diubah anggotanya');
+    expect(memberRes.body.message).toContain(
+      'Proyek yang sudah ditutup tidak dapat diubah anggotanya',
+    );
   });
 
   // -------------------------------------------------------------

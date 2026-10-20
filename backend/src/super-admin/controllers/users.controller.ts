@@ -57,7 +57,9 @@ export class UsersController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Melihat daftar seluruh pengguna dengan filter dan paginasi' })
+  @ApiOperation({
+    summary: 'Melihat daftar seluruh pengguna dengan filter dan paginasi',
+  })
   @ApiResponse({ status: 200, description: 'Daftar pengguna berhasil dimuat.' })
   async findAll(@Query() query: UserQueryDto) {
     return this.usersService.findAll(query);
@@ -65,7 +67,10 @@ export class UsersController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Melihat detail informasi pengguna' })
-  @ApiResponse({ status: 200, description: 'Detail pengguna berhasil ditemukan.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Detail pengguna berhasil ditemukan.',
+  })
   @ApiResponse({ status: 404, description: 'Pengguna tidak ditemukan.' })
   async findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
@@ -90,10 +95,14 @@ export class UsersController {
 
   @Patch(':id/status')
   @ApiOperation({ summary: 'Mengaktifkan atau menonaktifkan akun pengguna' })
-  @ApiResponse({ status: 200, description: 'Status pengguna berhasil diperbarui.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Status pengguna berhasil diperbarui.',
+  })
   @ApiResponse({
     status: 400,
-    description: 'Tidak dapat menonaktifkan diri sendiri atau super_admin terakhir.',
+    description:
+      'Tidak dapat menonaktifkan diri sendiri atau super_admin terakhir.',
   })
   @ApiResponse({ status: 404, description: 'Pengguna tidak ditemukan.' })
   async updateStatus(
@@ -107,10 +116,14 @@ export class UsersController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Menghapus pengguna secara aman (soft delete)' })
-  @ApiResponse({ status: 200, description: 'Pengguna berhasil di-soft-delete.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Pengguna berhasil di-soft-delete.',
+  })
   @ApiResponse({
     status: 400,
-    description: 'Tidak dapat menghapus diri sendiri atau super_admin terakhir.',
+    description:
+      'Tidak dapat menghapus diri sendiri atau super_admin terakhir.',
   })
   @ApiResponse({ status: 404, description: 'Pengguna tidak ditemukan.' })
   async remove(
@@ -123,10 +136,13 @@ export class UsersController {
 
   @Post(':id/reset-password')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Mereset kata sandi pengguna dan mencabut seluruh sesi aktif' })
+  @ApiOperation({
+    summary: 'Mereset kata sandi pengguna dan mencabut seluruh sesi aktif',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Permintaan reset berhasil diproses, token sekali pakai tersimpan dan sesi dicabut.',
+    description:
+      'Permintaan reset berhasil diproses, token sekali pakai tersimpan dan sesi dicabut.',
   })
   @ApiResponse({ status: 404, description: 'Pengguna tidak ditemukan.' })
   async resetPassword(

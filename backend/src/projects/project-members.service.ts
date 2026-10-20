@@ -82,10 +82,7 @@ export class ProjectMembersService {
       );
     }
 
-    if (
-      targetUser.role !== Role.pengguna &&
-      targetUser.role !== Role.admin
-    ) {
+    if (targetUser.role !== Role.pengguna && targetUser.role !== Role.admin) {
       throw new BadRequestException(
         'Hanya pengguna dengan peran pengguna atau admin yang dapat ditambahkan sebagai anggota proyek',
       );

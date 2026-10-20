@@ -10,13 +10,19 @@ import {
 } from 'class-validator';
 
 export class CreateMilestoneDto {
-  @ApiProperty({ description: 'Nama milestone', example: 'Persetujuan Desain UI/UX' })
+  @ApiProperty({
+    description: 'Nama milestone',
+    example: 'Persetujuan Desain UI/UX',
+  })
   @IsNotEmpty({ message: 'Nama milestone wajib diisi' })
   @IsString({ message: 'Nama milestone harus berupa string' })
   @MaxLength(255, { message: 'Nama milestone maksimal 255 karakter' })
   name!: string;
 
-  @ApiProperty({ description: 'Tenggat waktu milestone', example: '2026-02-01' })
+  @ApiProperty({
+    description: 'Tenggat waktu milestone',
+    example: '2026-02-01',
+  })
   @IsNotEmpty({ message: 'Tenggat waktu milestone wajib diisi' })
   @IsDateString({}, { message: 'Format tenggat waktu milestone tidak valid' })
   dueDate!: string;

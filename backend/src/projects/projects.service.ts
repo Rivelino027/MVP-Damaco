@@ -77,6 +77,7 @@ export class ProjectsService {
     if (userRole === Role.pengguna) {
       const clone = { ...project };
       if (clone.department && typeof clone.department === 'object') {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { annualBudget, ...cleanDept } = clone.department;
         clone.department = cleanDept;
       }
@@ -94,11 +95,7 @@ export class ProjectsService {
    * Status awal selalu 'diajukan'.
    * Admin dipaksa ke departemennya sendiri.
    */
-  async create(
-    dto: CreateProjectDto,
-    user: AuthenticatedUser,
-    ip?: string,
-  ) {
+  async create(dto: CreateProjectDto, user: AuthenticatedUser, ip?: string) {
     let targetDepartmentId: string;
 
     if (user.role === Role.admin) {
@@ -113,7 +110,9 @@ export class ProjectsService {
       targetDepartmentId = user.departmentId;
     } else if (user.role === Role.super_admin) {
       if (!dto.departmentId) {
-        throw new BadRequestException('Departemen wajib dipilih untuk Super Admin');
+        throw new BadRequestException(
+          'Departemen wajib dipilih untuk Super Admin',
+        );
       }
       targetDepartmentId = dto.departmentId;
     } else {
@@ -125,7 +124,9 @@ export class ProjectsService {
       where: { id: targetDepartmentId, deletedAt: null, isActive: true },
     });
     if (!department) {
-      throw new BadRequestException('Departemen tidak ditemukan atau tidak aktif');
+      throw new BadRequestException(
+        'Departemen tidak ditemukan atau tidak aktif',
+      );
     }
 
     // Validasi cost center

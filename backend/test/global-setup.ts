@@ -12,7 +12,10 @@ export default async function globalSetup() {
   process.env.DATABASE_URL = testDbUrl;
   const backendDir = path.resolve(__dirname, '..');
 
-  console.log('\n[E2E Global Setup] Menyiapkan migrasi pada database pengujian:', testDbUrl);
+  console.log(
+    '\n[E2E Global Setup] Menyiapkan migrasi pada database pengujian:',
+    testDbUrl,
+  );
 
   // Jalankan prisma migrate deploy khusus ke database tes
   execSync('npx prisma migrate deploy', {

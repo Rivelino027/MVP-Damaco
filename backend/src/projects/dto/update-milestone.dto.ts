@@ -25,7 +25,9 @@ export class UpdateMilestoneDto {
   @IsBoolean({ message: 'Status selesai harus bernilai boolean' })
   isDone?: boolean;
 
-  @ApiPropertyOptional({ description: 'ID Fase terkait (kirim null untuk melepas dari fase)' })
+  @ApiPropertyOptional({
+    description: 'ID Fase terkait (kirim null untuk melepas dari fase)',
+  })
   @IsOptional()
   @IsUUID('4', { message: 'ID fase harus berupa UUID yang valid' })
   phaseId?: string | null;

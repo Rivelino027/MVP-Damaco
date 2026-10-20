@@ -64,9 +64,7 @@ export class ProjectMilestonesService {
         where: { id: dto.phaseId, projectId },
       });
       if (!phase) {
-        throw new BadRequestException(
-          'Fase tidak ditemukan dalam proyek ini',
-        );
+        throw new BadRequestException('Fase tidak ditemukan dalam proyek ini');
       }
     }
 
@@ -131,9 +129,7 @@ export class ProjectMilestonesService {
         where: { id: dto.phaseId, projectId },
       });
       if (!phase) {
-        throw new BadRequestException(
-          'Fase tidak ditemukan dalam proyek ini',
-        );
+        throw new BadRequestException('Fase tidak ditemukan dalam proyek ini');
       }
     }
 

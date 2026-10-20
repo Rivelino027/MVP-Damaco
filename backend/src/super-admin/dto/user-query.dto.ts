@@ -1,10 +1,21 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class UserQueryDto {
-  @ApiPropertyOptional({ description: 'Nomor halaman (mulai dari 1)', default: 1 })
+  @ApiPropertyOptional({
+    description: 'Nomor halaman (mulai dari 1)',
+    default: 1,
+  })
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @IsInt({ message: 'Halaman harus berupa angka bulat' })
@@ -29,7 +40,9 @@ export class UserQueryDto {
   @IsString()
   departmentId?: string;
 
-  @ApiPropertyOptional({ description: 'Filter berdasarkan status aktif (true/false)' })
+  @ApiPropertyOptional({
+    description: 'Filter berdasarkan status aktif (true/false)',
+  })
   @IsOptional()
   @Transform(({ value }) => {
     if (value === 'true' || value === true) return true;
@@ -44,7 +57,10 @@ export class UserQueryDto {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ description: 'Sertakan akun yang telah di-soft-delete', default: false })
+  @ApiPropertyOptional({
+    description: 'Sertakan akun yang telah di-soft-delete',
+    default: false,
+  })
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()

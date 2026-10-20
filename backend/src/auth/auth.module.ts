@@ -9,10 +9,7 @@ import { LoginRateLimiterService } from './services/login-rate-limiter.service';
 import { ScopeService } from './services/scope.service';
 
 @Module({
-  imports: [
-    PrismaModule,
-    JwtModule.register({}),
-  ],
+  imports: [PrismaModule, JwtModule.register({})],
   controllers: [AuthController],
   providers: [
     AuthService,
@@ -21,12 +18,6 @@ import { ScopeService } from './services/scope.service';
     JwtAuthGuard,
     RolesGuard,
   ],
-  exports: [
-    AuthService,
-    ScopeService,
-    JwtModule,
-    JwtAuthGuard,
-    RolesGuard,
-  ],
+  exports: [AuthService, ScopeService, JwtModule, JwtAuthGuard, RolesGuard],
 })
 export class AuthModule {}

@@ -1,7 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ProjectStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
 
 export class ProjectQueryDto {
   @ApiPropertyOptional({ description: 'Nomor halaman', default: 1 })
@@ -23,7 +30,10 @@ export class ProjectQueryDto {
   @IsString({ message: 'Pencarian harus berupa string' })
   search?: string;
 
-  @ApiPropertyOptional({ enum: ProjectStatus, description: 'Filter status proyek' })
+  @ApiPropertyOptional({
+    enum: ProjectStatus,
+    description: 'Filter status proyek',
+  })
   @IsOptional()
   @IsEnum(ProjectStatus, { message: 'Status proyek tidak valid' })
   status?: ProjectStatus;

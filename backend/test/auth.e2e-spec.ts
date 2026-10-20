@@ -651,9 +651,7 @@ describe('Auth Module & Guards Integration Tests (e2e)', () => {
         })
         .expect(429);
 
-      expect(blockedRes.body.message).toMatch(
-        /Terlalu banyak percobaan login/,
-      );
+      expect(blockedRes.body.message).toMatch(/Terlalu banyak percobaan login/);
     });
   });
 

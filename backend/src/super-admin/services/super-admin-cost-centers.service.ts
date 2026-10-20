@@ -31,7 +31,9 @@ export class SuperAdminCostCentersService {
       where: { id: dto.departmentId },
     });
     if (!dept || dept.deletedAt !== null) {
-      throw new BadRequestException('Departemen tidak valid atau tidak ditemukan');
+      throw new BadRequestException(
+        'Departemen tidak valid atau tidak ditemukan',
+      );
     }
 
     const created = await this.prisma.costCenter.create({
@@ -165,7 +167,9 @@ export class SuperAdminCostCentersService {
         where: { id: dto.departmentId },
       });
       if (!dept || dept.deletedAt !== null) {
-        throw new BadRequestException('Departemen tidak valid atau tidak ditemukan');
+        throw new BadRequestException(
+          'Departemen tidak valid atau tidak ditemukan',
+        );
       }
     }
 

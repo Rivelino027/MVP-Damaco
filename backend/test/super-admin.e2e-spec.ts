@@ -241,6 +241,7 @@ describe('Super Admin Module Integration Tests (e2e)', () => {
       },
       { secret: jwtSecret, expiresIn: '15m' },
     );
+    void secondarySuperAdminToken;
   }, 60000);
 
   afterAll(async () => {
@@ -276,7 +277,8 @@ describe('Super Admin Module Integration Tests (e2e)', () => {
     it.each(endpoints)(
       'Pengguna biasa (role: pengguna) mengakses $url harus ditolak 403 Forbidden',
       async ({ method, url }) => {
-        await (request(app.getHttpServer()) as any)[method](url)
+        await (request(app.getHttpServer()) as any)
+          [method](url)
           .set('Authorization', `Bearer ${penggunaToken}`)
           .expect(403);
       },
@@ -285,7 +287,8 @@ describe('Super Admin Module Integration Tests (e2e)', () => {
     it.each(endpoints)(
       'Admin departemen (role: admin) mengakses $url harus ditolak 403 Forbidden',
       async ({ method, url }) => {
-        await (request(app.getHttpServer()) as any)[method](url)
+        await (request(app.getHttpServer()) as any)
+          [method](url)
           .set('Authorization', `Bearer ${adminToken}`)
           .expect(403);
       },
@@ -294,7 +297,8 @@ describe('Super Admin Module Integration Tests (e2e)', () => {
     it.each(endpoints)(
       'Finance (role: finance) mengakses $url harus ditolak 403 Forbidden',
       async ({ method, url }) => {
-        await (request(app.getHttpServer()) as any)[method](url)
+        await (request(app.getHttpServer()) as any)
+          [method](url)
           .set('Authorization', `Bearer ${financeToken}`)
           .expect(403);
       },
@@ -614,15 +618,12 @@ describe('Super Admin Module Integration Tests (e2e)', () => {
       ];
 
       for (const ep of blockedEndpoints) {
-        const res = await (request(app.getHttpServer()) as any)[ep.method](
-          ep.url,
-        )
+        const res = await (request(app.getHttpServer()) as any)
+          [ep.method](ep.url)
           .set('Authorization', `Bearer ${subjectAccessToken}`)
           .expect(403);
 
-        expect(res.body.message).toMatch(
-          /wajib mengganti kata sandi/i,
-        );
+        expect(res.body.message).toMatch(/wajib mengganti kata sandi/i);
       }
     });
 
@@ -677,6 +678,7 @@ describe('Super Admin Module Integration Tests (e2e)', () => {
       const tokensBefore = await prisma.refreshToken.count({
         where: { userId: testSubjectUser.id },
       });
+      expect(tokensBefore).toBeDefined();
 
       const newPassword = 'KataSandiBaruAman123!';
       const res = await request(app.getHttpServer())

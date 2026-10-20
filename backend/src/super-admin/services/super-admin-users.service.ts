@@ -199,7 +199,12 @@ export class SuperAdminUsersService {
     return user;
   }
 
-  async update(id: string, dto: UpdateUserDto, currentUserId: string, ip: string) {
+  async update(
+    id: string,
+    dto: UpdateUserDto,
+    currentUserId: string,
+    ip: string,
+  ) {
     const targetUser = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -281,7 +286,9 @@ export class SuperAdminUsersService {
     // Validasi departemen berdasarkan peran efektif
     const effectiveRole = dto.role ?? targetUser.role;
     const effectiveDept =
-      dto.departmentId !== undefined ? dto.departmentId : targetUser.departmentId;
+      dto.departmentId !== undefined
+        ? dto.departmentId
+        : targetUser.departmentId;
 
     if (effectiveRole === Role.pengguna || effectiveRole === Role.admin) {
       if (!effectiveDept) {
@@ -307,8 +314,10 @@ export class SuperAdminUsersService {
     if (dto.name !== undefined) updateData.name = dto.name.trim();
     if (normalizedEmail !== undefined) updateData.email = normalizedEmail;
     if (dto.role !== undefined) updateData.role = dto.role;
-    if (dto.departmentId !== undefined) updateData.departmentId = dto.departmentId;
-    if (dto.jobTitle !== undefined) updateData.jobTitle = dto.jobTitle?.trim() ?? null;
+    if (dto.departmentId !== undefined)
+      updateData.departmentId = dto.departmentId;
+    if (dto.jobTitle !== undefined)
+      updateData.jobTitle = dto.jobTitle?.trim() ?? null;
     if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
 
     if (dto.password) {

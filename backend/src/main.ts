@@ -28,7 +28,9 @@ async function bootstrap() {
 
   // Keamanan: CORS terbatas (daftar origin dari env CORS_ORIGINS, dipisah koma)
   const allowedOrigins = process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+    ? process.env.CORS_ORIGINS.split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean)
     : ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
   app.enableCors({

@@ -26,7 +26,8 @@ export class UpdateUserDto {
   })
   @IsOptional()
   @IsEnum(Role, {
-    message: 'Peran harus salah satu dari: pengguna, admin, finance, super_admin',
+    message:
+      'Peran harus salah satu dari: pengguna, admin, finance, super_admin',
   })
   role?: Role;
 

@@ -38,7 +38,10 @@ export class ProjectTypesController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Membuat jenis proyek baru' })
   @ApiResponse({ status: 201, description: 'Jenis proyek berhasil dibuat.' })
-  @ApiResponse({ status: 409, description: 'Nama jenis proyek sudah digunakan.' })
+  @ApiResponse({
+    status: 409,
+    description: 'Nama jenis proyek sudah digunakan.',
+  })
   async create(
     @Body() dto: CreateProjectTypeDto,
     @CurrentUser('id') currentUserId: string,
@@ -50,7 +53,10 @@ export class ProjectTypesController {
   @Get()
   @ApiOperation({ summary: 'Melihat seluruh jenis proyek' })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
-  @ApiResponse({ status: 200, description: 'Daftar jenis proyek berhasil dimuat.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Daftar jenis proyek berhasil dimuat.',
+  })
   async findAll(@Query('isActive') isActive?: string) {
     const activeFilter =
       isActive === undefined ? undefined : isActive === 'true';
@@ -67,7 +73,10 @@ export class ProjectTypesController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Memperbarui data jenis proyek' })
-  @ApiResponse({ status: 200, description: 'Jenis proyek berhasil diperbarui.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Jenis proyek berhasil diperbarui.',
+  })
   @ApiResponse({ status: 404, description: 'Jenis proyek tidak ditemukan.' })
   async update(
     @Param('id') id: string,
@@ -79,8 +88,13 @@ export class ProjectTypesController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Menonaktifkan jenis proyek (bukan hapus permanen)' })
-  @ApiResponse({ status: 200, description: 'Jenis proyek berhasil dinonaktifkan.' })
+  @ApiOperation({
+    summary: 'Menonaktifkan jenis proyek (bukan hapus permanen)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Jenis proyek berhasil dinonaktifkan.',
+  })
   @ApiResponse({ status: 404, description: 'Jenis proyek tidak ditemukan.' })
   async remove(
     @Param('id') id: string,

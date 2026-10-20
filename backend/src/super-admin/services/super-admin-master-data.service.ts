@@ -105,7 +105,9 @@ export class SuperAdminMasterDataService {
           where: { name: trimmedName },
         });
         if (existing) {
-          throw new ConflictException('Nama kategori pengeluaran sudah digunakan');
+          throw new ConflictException(
+            'Nama kategori pengeluaran sudah digunakan',
+          );
         }
       }
     }
@@ -118,7 +120,9 @@ export class SuperAdminMasterDataService {
           where: { code: trimmedCode },
         });
         if (existing) {
-          throw new ConflictException('Kode kategori pengeluaran sudah digunakan');
+          throw new ConflictException(
+            'Kode kategori pengeluaran sudah digunakan',
+          );
         }
       }
     }
@@ -136,7 +140,8 @@ export class SuperAdminMasterDataService {
       data: {
         name: trimmedName,
         code: trimmedCode,
-        color: dto.color !== undefined ? dto.color?.trim() ?? null : undefined,
+        color:
+          dto.color !== undefined ? (dto.color?.trim() ?? null) : undefined,
         isActive: dto.isActive,
       },
     });

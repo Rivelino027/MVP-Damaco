@@ -29,13 +29,27 @@ export class UpdateProjectDto {
   @IsUUID('4', { message: 'ID jenis proyek harus berupa UUID' })
   projectTypeId?: string;
 
-  @ApiPropertyOptional({ description: 'Tanggal mulai proyek', example: '2026-01-01' })
+  @ApiPropertyOptional({
+    description: 'Tanggal mulai proyek',
+    example: '2026-01-01',
+  })
   @IsOptional()
-  @IsDateString({}, { message: 'Format tanggal mulai tidak valid (gunakan format YYYY-MM-DD)' })
+  @IsDateString(
+    {},
+    { message: 'Format tanggal mulai tidak valid (gunakan format YYYY-MM-DD)' },
+  )
   startDate?: string;
 
-  @ApiPropertyOptional({ description: 'Tanggal selesai proyek', example: '2026-06-30' })
+  @ApiPropertyOptional({
+    description: 'Tanggal selesai proyek',
+    example: '2026-06-30',
+  })
   @IsOptional()
-  @IsDateString({}, { message: 'Format tanggal selesai tidak valid (gunakan format YYYY-MM-DD)' })
+  @IsDateString(
+    {},
+    {
+      message: 'Format tanggal selesai tidak valid (gunakan format YYYY-MM-DD)',
+    },
+  )
   endDate?: string;
 }

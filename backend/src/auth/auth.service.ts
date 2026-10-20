@@ -99,9 +99,7 @@ export class AuthService implements OnModuleInit {
         reason: 'ACCOUNT_INACTIVE',
       });
 
-      throw new ForbiddenException(
-        'Akun tidak aktif, hubungi administrator',
-      );
+      throw new ForbiddenException('Akun tidak aktif, hubungi administrator');
     }
 
     // 8. Pembatasan klien (web vs mobile)
@@ -190,10 +188,12 @@ export class AuthService implements OnModuleInit {
       throw new UnauthorizedException('Refresh token telah kedaluwarsa');
     }
 
-    if (!record.user || !record.user.isActive || record.user.deletedAt !== null) {
-      throw new ForbiddenException(
-        'Akun tidak aktif, hubungi administrator',
-      );
+    if (
+      !record.user ||
+      !record.user.isActive ||
+      record.user.deletedAt !== null
+    ) {
+      throw new ForbiddenException('Akun tidak aktif, hubungi administrator');
     }
 
     // Cabut refresh token yang sedang dipakai (single-use rotation)
@@ -241,9 +241,7 @@ export class AuthService implements OnModuleInit {
     });
 
     if (!user || !user.isActive || user.deletedAt !== null) {
-      throw new ForbiddenException(
-        'Akun tidak aktif, hubungi administrator',
-      );
+      throw new ForbiddenException('Akun tidak aktif, hubungi administrator');
     }
 
     return {
@@ -330,7 +328,12 @@ export class AuthService implements OnModuleInit {
   }
 
   private async generateTokens(
-    user: { id: string; email: string; role: Role; departmentId: string | null },
+    user: {
+      id: string;
+      email: string;
+      role: Role;
+      departmentId: string | null;
+    },
     deviceInfo: string,
   ) {
     const payload: JwtPayload = {

@@ -38,7 +38,10 @@ export class CostCentersController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Membuat cost center baru' })
   @ApiResponse({ status: 201, description: 'Cost center berhasil dibuat.' })
-  @ApiResponse({ status: 409, description: 'Kode cost center sudah digunakan.' })
+  @ApiResponse({
+    status: 409,
+    description: 'Kode cost center sudah digunakan.',
+  })
   async create(
     @Body() dto: CreateCostCenterDto,
     @CurrentUser('id') currentUserId: string,
@@ -49,7 +52,10 @@ export class CostCentersController {
 
   @Get()
   @ApiOperation({ summary: 'Melihat daftar cost center' })
-  @ApiResponse({ status: 200, description: 'Daftar cost center berhasil dimuat.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Daftar cost center berhasil dimuat.',
+  })
   async findAll(@Query() query: CostCenterQueryDto) {
     return this.costCentersService.findAll(query);
   }

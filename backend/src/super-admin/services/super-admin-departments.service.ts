@@ -181,7 +181,8 @@ export class SuperAdminDepartmentsService {
       data: {
         name: trimmedName,
         headUserId: dto.headUserId !== undefined ? dto.headUserId : undefined,
-        annualBudget: dto.annualBudget !== undefined ? dto.annualBudget : undefined,
+        annualBudget:
+          dto.annualBudget !== undefined ? dto.annualBudget : undefined,
         isActive: dto.isActive !== undefined ? dto.isActive : undefined,
       },
       include: {
@@ -250,7 +251,11 @@ export class SuperAdminDepartmentsService {
       module: 'DEPARTMENT_MANAGEMENT',
       entityId: updated.id,
       beforeData,
-      afterData: { id: updated.id, deletedAt: updated.deletedAt, isActive: updated.isActive },
+      afterData: {
+        id: updated.id,
+        deletedAt: updated.deletedAt,
+        isActive: updated.isActive,
+      },
       ipAddress: ip,
     });
 

@@ -10,7 +10,10 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
-  @ApiProperty({ description: 'Nama lengkap pengguna', example: 'Ahmad Dahlan' })
+  @ApiProperty({
+    description: 'Nama lengkap pengguna',
+    example: 'Ahmad Dahlan',
+  })
   @IsNotEmpty({ message: 'Nama wajib diisi' })
   @IsString({ message: 'Nama harus berupa string' })
   name!: string;
@@ -30,7 +33,8 @@ export class CreateUserDto {
   })
   @IsNotEmpty({ message: 'Peran wajib diisi' })
   @IsEnum(Role, {
-    message: 'Peran harus salah satu dari: pengguna, admin, finance, super_admin',
+    message:
+      'Peran harus salah satu dari: pengguna, admin, finance, super_admin',
   })
   role!: Role;
 

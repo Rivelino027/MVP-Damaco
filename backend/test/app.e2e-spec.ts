@@ -16,7 +16,9 @@ describe('BudgetFlow API (e2e)', () => {
   let app: INestApplication;
 
   const allowedOrigins = process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+    ? process.env.CORS_ORIGINS.split(',')
+        .map((o) => o.trim())
+        .filter(Boolean)
     : ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
   beforeAll(async () => {

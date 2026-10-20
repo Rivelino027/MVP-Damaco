@@ -37,8 +37,14 @@ export class ExpenseCategoriesController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Membuat kategori pengeluaran baru' })
-  @ApiResponse({ status: 201, description: 'Kategori pengeluaran berhasil dibuat.' })
-  @ApiResponse({ status: 409, description: 'Nama atau kode kategori sudah digunakan.' })
+  @ApiResponse({
+    status: 201,
+    description: 'Kategori pengeluaran berhasil dibuat.',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Nama atau kode kategori sudah digunakan.',
+  })
   async create(
     @Body() dto: CreateExpenseCategoryDto,
     @CurrentUser('id') currentUserId: string,
@@ -75,11 +81,18 @@ export class ExpenseCategoriesController {
     @CurrentUser('id') currentUserId: string,
     @Ip() ip: string,
   ) {
-    return this.masterDataService.updateExpenseCategory(id, dto, currentUserId, ip);
+    return this.masterDataService.updateExpenseCategory(
+      id,
+      dto,
+      currentUserId,
+      ip,
+    );
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Menonaktifkan kategori pengeluaran (bukan hapus permanen)' })
+  @ApiOperation({
+    summary: 'Menonaktifkan kategori pengeluaran (bukan hapus permanen)',
+  })
   @ApiResponse({ status: 200, description: 'Kategori berhasil dinonaktifkan.' })
   @ApiResponse({ status: 404, description: 'Kategori tidak ditemukan.' })
   async remove(

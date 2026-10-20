@@ -9,7 +9,12 @@ import {
   NotFoundException,
   Post,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -54,10 +59,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Keluar dan mencabut refresh token' })
-  async logout(
-    @CurrentUser('id') userId: string,
-    @Body() dto: LogoutDto,
-  ) {
+  async logout(@CurrentUser('id') userId: string, @Body() dto: LogoutDto) {
     return this.authService.logout(userId, dto.refreshToken);
   }
 

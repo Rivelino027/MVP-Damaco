@@ -49,7 +49,10 @@ export class DepartmentsController {
 
   @Get()
   @ApiOperation({ summary: 'Melihat daftar departemen' })
-  @ApiResponse({ status: 200, description: 'Daftar departemen berhasil dimuat.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Daftar departemen berhasil dimuat.',
+  })
   async findAll(@Query() query: DepartmentQueryDto) {
     return this.departmentsService.findAll(query);
   }
@@ -76,8 +79,13 @@ export class DepartmentsController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Menghapus departemen (hanya jika belum dipakai proyek/user)' })
-  @ApiResponse({ status: 200, description: 'Departemen berhasil di-soft-delete.' })
+  @ApiOperation({
+    summary: 'Menghapus departemen (hanya jika belum dipakai proyek/user)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Departemen berhasil di-soft-delete.',
+  })
   @ApiResponse({
     status: 400,
     description: 'Departemen sedang digunakan oleh pengguna atau proyek.',

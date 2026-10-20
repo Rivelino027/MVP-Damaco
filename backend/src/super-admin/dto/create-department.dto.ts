@@ -1,9 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class CreateDepartmentDto {
-  @ApiProperty({ description: 'Nama departemen (unik)', example: 'Engineering' })
+  @ApiProperty({
+    description: 'Nama departemen (unik)',
+    example: 'Engineering',
+  })
   @IsNotEmpty({ message: 'Nama departemen wajib diisi' })
   @IsString({ message: 'Nama departemen harus berupa string' })
   name!: string;
