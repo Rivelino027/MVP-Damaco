@@ -5,11 +5,11 @@ Kerjakan satu alur utuh dulu: login, Super Admin membuat akun, Pengguna mengisi 
 
 | Status | Fase | Isi | Definisi selesai |
 |---|---|---|---|
-| [ ] | 0. Persiapan | Aturan proyek, tokens, repo monorepo, MySQL lokal (XAMPP), backend `/health`, CI dasar | Backend hidup, `prisma validate` lolos, README jelas |
-| [ ] | 1. Fondasi | Migrasi, trigger dan CHECK, seed, auth, guard peran, manajemen pengguna, departemen, cost center, master data, audit log, web admin dasar | Login 4 peran, 403 benar, Super Admin bisa membuat akun |
-| [ ] | 2. Proyek dan task | Proyek, fase, milestone, task, anggota, lampiran, kanban | Admin membuat proyek dan task, pengguna melihat task miliknya |
+| [x] | 0. Persiapan | Aturan proyek, tokens, repo monorepo, MySQL lokal (XAMPP), backend `/health`, CI dasar | Backend hidup, `prisma validate` lolos, README jelas |
+| [x] | 1. Fondasi | Migrasi, trigger dan CHECK, seed, auth, guard peran, manajemen pengguna, departemen, cost center, master data, audit log, web admin dasar | Login 4 peran, 403 benar, Super Admin bisa membuat akun |
+| [x] | 2. Proyek dan task | Proyek, fase, milestone, task, anggota, lampiran, kanban | Admin membuat proyek dan task, pengguna melihat task miliknya |
 | [ ] | 3. Timesheet | Isi jam, persetujuan Admin, biaya per jam (Super Admin), agregat biaya tenaga kerja | Snapshot biaya benar, tidak ada kebocoran per orang |
-| [ ] | 4. Pengeluaran | Form dan foto nota, rantai Admin lalu Finance, Nominal Besar, pembayaran | Alur lengkap sampai dibayar, aturan Nominal Besar teruji |
+| [] | 4. Pengeluaran | Form dan foto nota, rantai Admin lalu Finance, Nominal Besar, pembayaran | Alur lengkap sampai dibayar, aturan Nominal Besar teruji |
 | [ ] | 5. Batas dan anggaran | Batas dua pihak, pengajuan anggaran, baseline, Budget vs Aktual | Anggaran terkunci, batas hanya berubah lewat dua pihak |
 | [ ] | 6. Dasbor dan laporan | Dasbor per peran, laporan, ekspor Excel dan PDF, peringatan dini | Angka dasbor cocok dengan data uji |
 | [ ] | 7. Mobile | Fondasi Flutter, lalu Pengguna, Admin, Finance | Tiap peran bisa menjalankan alurnya di emulator |
@@ -40,3 +40,4 @@ Addendum formal, impor anggaran dari Excel, template proyek, komitmen biaya (PO)
 
 - Fase 2 (sebagian): API proyek, anggota, fase, milestone selesai. Menyusul: task (6B) dan halaman web (6C).
 - Fase 2: API task, checklist, komentar, dan lampiran selesai. Menyusul halaman web proyek dan task (6C).
+- Fase 2 selesai: API dan halaman web proyek, fase, milestone, task, kanban, lampiran. Perapian tertunda: ukuran bundel web (860 kB), peringatan act() di tes, nama berkas di header unduhan.
