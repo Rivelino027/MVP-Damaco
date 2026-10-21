@@ -6,6 +6,8 @@ import {
   AlertTriangle,
   FileText,
   CircleDot,
+  Send,
+  Lock,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -17,6 +19,8 @@ type StatusType =
   | 'dibayar'
   | 'selesai'
   | 'berjalan'
+  | 'diajukan'
+  | 'ditutup'
   | 'error';
 
 const STATUS_CONFIG: Record<
@@ -71,6 +75,20 @@ const STATUS_CONFIG: Record<
     border: 'border-primary/20',
     icon: <CircleDot className="h-3.5 w-3.5" />,
     label: 'Berjalan',
+  },
+  diajukan: {
+    bg: 'bg-blue-tint',
+    text: 'text-navy',
+    border: 'border-blue/20',
+    icon: <Send className="h-3.5 w-3.5" />,
+    label: 'Diajukan',
+  },
+  ditutup: {
+    bg: 'bg-[#F4F4F4]',
+    text: 'text-[#6B5E60]',
+    border: 'border-[#D9D9D9]',
+    icon: <Lock className="h-3.5 w-3.5" />,
+    label: 'Ditutup',
   },
   error: {
     bg: 'bg-danger-tint',

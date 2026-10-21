@@ -48,6 +48,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
 
 const FINANCE_NAV_ITEMS: NavItem[] = [
   { label: 'Dasbor', to: '/', icon: LayoutDashboard, end: true },
+  { label: 'Proyek', to: '/proyek', icon: FolderKanban },
   { label: 'Persetujuan', to: '/persetujuan', icon: CheckSquare },
   { label: 'Pembayaran', to: '/pembayaran', icon: CreditCard },
   { label: 'Anggaran', to: '/anggaran', icon: Wallet },

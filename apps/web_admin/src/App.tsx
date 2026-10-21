@@ -14,6 +14,9 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ProtectedRoute } from '@/components/guards/ProtectedRoute';
 import { RoleRoute } from '@/components/guards/RoleRoute';
 import { SessionInitializer } from '@/components/auth/SessionInitializer';
+import ProjectsPage from '@/pages/projects/ProjectsPage';
+import ProjectDetailPage from '@/pages/projects/ProjectDetailPage';
+import ProjectKanbanPage from '@/pages/projects/ProjectKanbanPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,12 +53,28 @@ export default function App() {
                 }
               />
 
-              {/* Menu Admin & Super Admin */}
+              {/* Menu Admin, Finance & Super Admin */}
               <Route
                 path="/proyek"
                 element={
-                  <RoleRoute allowedRoles={['admin', 'super_admin']}>
-                    <PlaceholderPage title="Proyek" category="Manajemen Proyek" />
+                  <RoleRoute allowedRoles={['admin', 'finance', 'super_admin']}>
+                    <ProjectsPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="/proyek/:id"
+                element={
+                  <RoleRoute allowedRoles={['admin', 'finance', 'super_admin']}>
+                    <ProjectDetailPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="/proyek/:id/task"
+                element={
+                  <RoleRoute allowedRoles={['admin', 'finance', 'super_admin']}>
+                    <ProjectKanbanPage />
                   </RoleRoute>
                 }
               />
