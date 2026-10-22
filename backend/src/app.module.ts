@@ -9,6 +9,8 @@ import { RolesGuard } from './auth/guards/roles.guard';
 
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
+import { TimesheetsModule } from './timesheets/timesheets.module';
+import { LaborCostsModule } from './labor-costs/labor-costs.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { TasksModule } from './tasks/tasks.module';
     SuperAdminModule,
     ProjectsModule,
     TasksModule,
+    TimesheetsModule,
+    LaborCostsModule,
   ],
   providers: [
     {
