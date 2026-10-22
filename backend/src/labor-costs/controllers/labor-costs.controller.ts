@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Controller,
   Get,
+  Ip,
   Param,
   Query,
 } from '@nestjs/common';
@@ -37,8 +38,14 @@ export class LaborCostsController {
     @Param('projectId') projectId: string,
     @CurrentUser() user: AuthenticatedUser,
     @Query() query: LaborCostQueryDto,
+    @Ip() ip: string,
   ) {
-    return this.laborCostsService.getProjectAggregate(projectId, user, query);
+    return this.laborCostsService.getProjectAggregate(
+      projectId,
+      user,
+      query,
+      ip,
+    );
   }
 
   @Get('departments/:departmentId')
@@ -56,11 +63,13 @@ export class LaborCostsController {
     @Param('departmentId') departmentId: string,
     @CurrentUser() user: AuthenticatedUser,
     @Query() query: LaborCostQueryDto,
+    @Ip() ip: string,
   ) {
     return this.laborCostsService.getDepartmentAggregate(
       departmentId,
       user,
       query,
+      ip,
     );
   }
 
@@ -73,12 +82,14 @@ export class LaborCostsController {
   async getAggregate(
     @Query() query: LaborCostQueryDto,
     @CurrentUser() user: AuthenticatedUser,
+    @Ip() ip: string,
   ) {
     if (query.projectId) {
       return this.laborCostsService.getProjectAggregate(
         query.projectId,
         user,
         query,
+        ip,
       );
     }
     if (query.departmentId) {
@@ -86,6 +97,7 @@ export class LaborCostsController {
         query.departmentId,
         user,
         query,
+        ip,
       );
     }
     throw new BadRequestException(

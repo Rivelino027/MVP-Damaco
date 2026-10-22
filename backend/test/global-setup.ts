@@ -17,12 +17,14 @@ export default async function globalSetup() {
     testDbUrl,
   );
 
-  // Jalankan prisma migrate deploy khusus ke database tes
-  execSync('npx prisma migrate deploy', {
-    cwd: backendDir,
-    env: { ...process.env, DATABASE_URL: testDbUrl },
-    stdio: 'inherit',
-  });
+  // Jalankan prisma migrate deploy khusus ke database tes jika diaktifkan secara eksplisit
+  if (process.env.RUN_MIGRATE_DEPLOY === 'true') {
+    execSync('npx prisma migrate deploy', {
+      cwd: backendDir,
+      env: { ...process.env, DATABASE_URL: testDbUrl },
+      stdio: 'inherit',
+    });
+  }
 
   // Jalankan seed awal ke database tes
   execSync('npx prisma db seed', {

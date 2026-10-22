@@ -416,8 +416,6 @@ export class TimesheetsService {
       );
     }
 
-    const isSuperAdmin = user.role === Role.super_admin;
-
     const approved = await this.prisma.$transaction(async (tx) => {
       // 1. Hitung snapshot tarif untuk setiap entry
       for (const entry of timesheet.entries) {
@@ -445,7 +443,7 @@ export class TimesheetsService {
         });
       }
 
-      // 2. Perbarui status timesheet
+      // 2. Perbarui status timesheet (respons tanpa biaya untuk SEMUA peran)
       const res = await tx.timesheet.update({
         where: { id },
         data: {
@@ -454,7 +452,7 @@ export class TimesheetsService {
           approvedAt: new Date(),
           rejectReason: null,
         },
-        select: this.getTimesheetSelect(isSuperAdmin),
+        select: this.getTimesheetSelect(false),
       });
 
       // 3. Perbarui catatan approval
