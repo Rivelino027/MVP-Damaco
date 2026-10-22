@@ -41,3 +41,4 @@ Addendum formal, impor anggaran dari Excel, template proyek, komitmen biaya (PO)
 - Fase 2 (sebagian): API proyek, anggota, fase, milestone selesai. Menyusul: task (6B) dan halaman web (6C).
 - Fase 2: API task, checklist, komentar, dan lampiran selesai. Menyusul halaman web proyek dan task (6C).
 - Fase 2 selesai: API dan halaman web proyek, fase, milestone, task, kanban, lampiran. Perapian tertunda: ukuran bundel web (860 kB), peringatan act() di tes, nama berkas di header unduhan.
+- Fase 3 (backend): API timesheet, biaya per jam, agregat selesai. WAJIB sebelum tarif asli dimasukkan: tahap 7B (filter bulan penuh, minimum pekerja 3, pembulatan, log akses agregat, respons persetujuan tanpa biaya).
