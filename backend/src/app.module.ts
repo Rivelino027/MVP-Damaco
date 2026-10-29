@@ -11,6 +11,9 @@ import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
 import { TimesheetsModule } from './timesheets/timesheets.module';
 import { LaborCostsModule } from './labor-costs/labor-costs.module';
+import { ExpensesModule } from './expenses/expenses.module';
+import { BudgetsModule } from './budgets/budgets.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -22,6 +25,9 @@ import { LaborCostsModule } from './labor-costs/labor-costs.module';
     TasksModule,
     TimesheetsModule,
     LaborCostsModule,
+    ExpensesModule,
+    BudgetsModule,
+    DashboardModule,
   ],
   providers: [
     {
