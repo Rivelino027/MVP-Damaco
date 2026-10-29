@@ -13,6 +13,8 @@ import {
   Trash2,
   AlertCircle,
   ExternalLink,
+  DollarSign,
+  Wallet,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import { getProjectApi, closeProjectApi, deleteProjectApi } from '@/lib/api-projects';
@@ -22,6 +24,8 @@ import { formatDate, extractErrorMessage } from '@/lib/utils';
 import ProjectFormModal from './ProjectFormModal';
 import ProjectTeamTab from './ProjectTeamTab';
 import ProjectPhasesTab from './ProjectPhasesTab';
+import ProjectLaborCostTab from './ProjectLaborCostTab';
+import ProjectBudgetTab from './ProjectBudgetTab';
 
 function ProgressBar({ value }: { value: number | string }) {
   const pct = Math.min(100, Math.max(0, Number(value) || 0));
@@ -52,7 +56,7 @@ export default function ProjectDetailPage() {
   const canEdit = user?.role === 'admin' || user?.role === 'super_admin';
   const isFinance = user?.role === 'finance';
 
-  const [activeTab, setActiveTab] = useState<'tim' | 'fase' | 'task'>('tim');
+  const [activeTab, setActiveTab] = useState<'tim' | 'fase' | 'task' | 'anggaran' | 'biaya-tenaga-kerja'>('tim');
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -291,6 +295,19 @@ export default function ProjectDetailPage() {
         </button>
 
         <button
+          id="tab-anggaran"
+          onClick={() => setActiveTab('anggaran')}
+          className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-all ${
+            activeTab === 'anggaran'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          <Wallet className="h-4 w-4" />
+          Anggaran
+        </button>
+
+        <button
           id="tab-task"
           onClick={() => setActiveTab('task')}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-all ${
@@ -302,6 +319,19 @@ export default function ProjectDetailPage() {
           <CheckSquare className="h-4 w-4" />
           Task & Kanban
         </button>
+
+        <button
+          id="tab-biaya-tenaga-kerja"
+          onClick={() => setActiveTab('biaya-tenaga-kerja')}
+          className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-all ${
+            activeTab === 'biaya-tenaga-kerja'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          <DollarSign className="h-4 w-4" />
+          Biaya Tenaga Kerja
+        </button>
       </div>
 
       {/* Tab Panels */}
@@ -311,6 +341,14 @@ export default function ProjectDetailPage() {
 
       {activeTab === 'fase' && (
         <ProjectPhasesTab project={project} canEdit={canEdit && !isFinance} />
+      )}
+
+      {activeTab === 'anggaran' && (
+        <ProjectBudgetTab projectId={project.id} canEdit={canEdit && !isFinance} />
+      )}
+
+      {activeTab === 'biaya-tenaga-kerja' && (
+        <ProjectLaborCostTab projectId={project.id} />
       )}
 
       {activeTab === 'task' && (

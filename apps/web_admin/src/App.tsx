@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastContainer } from '@/components/shared';
 import LoginPage from '@/pages/login/LoginPage';
 import ChangePasswordPage from '@/pages/change-password/ChangePasswordPage';
-import PlaceholderPage from '@/pages/placeholder/PlaceholderPage';
+import DashboardPage from '@/pages/dashboard/DashboardPage';
 import UserManagementPage from '@/pages/super-admin/users/UserManagementPage';
 import DepartmentCostCenterPage from '@/pages/super-admin/departments/DepartmentCostCenterPage';
 import MasterDataPage from '@/pages/super-admin/master-data/MasterDataPage';
@@ -17,6 +17,15 @@ import { SessionInitializer } from '@/components/auth/SessionInitializer';
 import ProjectsPage from '@/pages/projects/ProjectsPage';
 import ProjectDetailPage from '@/pages/projects/ProjectDetailPage';
 import ProjectKanbanPage from '@/pages/projects/ProjectKanbanPage';
+import TimesheetsPage from '@/pages/timesheets/TimesheetsPage';
+import HourlyCostsPage from '@/pages/super-admin/hourly-costs/HourlyCostsPage';
+import ExpensesPage from '@/pages/expenses/ExpensesPage';
+import NominalBesarPage from '@/pages/expenses/NominalBesarPage';
+import BudgetRequestsPage from '@/pages/budgets/BudgetRequestsPage';
+import ReportsPage from '@/pages/reports/ReportsPage';
+import FinancialReportsPage from '@/pages/reports/FinancialReportsPage';
+import RoleMatrixPage from '@/pages/super-admin/roles/RoleMatrixPage';
+import SystemSettingsPage from '@/pages/super-admin/settings/SystemSettingsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,7 +57,7 @@ export default function App() {
                 path="/"
                 element={
                   <RoleRoute allowedRoles={['admin', 'finance', 'super_admin']}>
-                    <PlaceholderPage title="Dasbor" category="Ringkasan" />
+                    <DashboardPage />
                   </RoleRoute>
                 }
               />
@@ -82,7 +91,7 @@ export default function App() {
                 path="/anggaran"
                 element={
                   <RoleRoute allowedRoles={['admin', 'finance', 'super_admin']}>
-                    <PlaceholderPage title="Anggaran" category="Keuangan" />
+                    <BudgetRequestsPage />
                   </RoleRoute>
                 }
               />
@@ -90,7 +99,7 @@ export default function App() {
                 path="/persetujuan"
                 element={
                   <RoleRoute allowedRoles={['admin', 'finance', 'super_admin']}>
-                    <PlaceholderPage title="Persetujuan" category="Alur Kerja" />
+                    <ExpensesPage />
                   </RoleRoute>
                 }
               />
@@ -98,7 +107,7 @@ export default function App() {
                 path="/timesheet"
                 element={
                   <RoleRoute allowedRoles={['admin', 'super_admin']}>
-                    <PlaceholderPage title="Timesheet Tim" category="Aktivitas" />
+                    <TimesheetsPage />
                   </RoleRoute>
                 }
               />
@@ -106,7 +115,7 @@ export default function App() {
                 path="/laporan"
                 element={
                   <RoleRoute allowedRoles={['admin', 'super_admin']}>
-                    <PlaceholderPage title="Laporan" category="Analitik" />
+                    <ReportsPage />
                   </RoleRoute>
                 }
               />
@@ -114,7 +123,7 @@ export default function App() {
                 path="/nominal-besar"
                 element={
                   <RoleRoute allowedRoles={['admin', 'finance', 'super_admin']}>
-                    <PlaceholderPage title="Nominal Besar" category="Batas Finansial" />
+                    <NominalBesarPage />
                   </RoleRoute>
                 }
               />
@@ -124,7 +133,7 @@ export default function App() {
                 path="/pembayaran"
                 element={
                   <RoleRoute allowedRoles={['finance']}>
-                    <PlaceholderPage title="Pembayaran" category="Keuangan" />
+                    <ExpensesPage />
                   </RoleRoute>
                 }
               />
@@ -132,7 +141,7 @@ export default function App() {
                 path="/laporan-keuangan"
                 element={
                   <RoleRoute allowedRoles={['finance']}>
-                    <PlaceholderPage title="Laporan Keuangan" category="Keuangan" />
+                    <FinancialReportsPage />
                   </RoleRoute>
                 }
               />
@@ -150,7 +159,7 @@ export default function App() {
                 path="/sistem/peran"
                 element={
                   <RoleRoute allowedRoles={['super_admin']}>
-                    <PlaceholderPage title="Peran & Akses" category="Sistem" />
+                    <RoleMatrixPage />
                   </RoleRoute>
                 }
               />
@@ -158,7 +167,7 @@ export default function App() {
                 path="/sistem/biaya-per-jam"
                 element={
                   <RoleRoute allowedRoles={['super_admin']}>
-                    <PlaceholderPage title="Biaya per Jam" category="Sistem" />
+                    <HourlyCostsPage />
                   </RoleRoute>
                 }
               />
@@ -190,7 +199,7 @@ export default function App() {
                 path="/sistem/pengaturan"
                 element={
                   <RoleRoute allowedRoles={['super_admin']}>
-                    <PlaceholderPage title="Pengaturan Sistem" category="Sistem" />
+                    <SystemSettingsPage />
                   </RoleRoute>
                 }
               />
