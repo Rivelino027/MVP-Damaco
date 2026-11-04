@@ -27,6 +27,10 @@ function formatRupiah(value: string | number | null | undefined): string {
   }).format(num);
 }
 
+function getFinancialReportFilename(): string {
+  return `Laporan_Keuangan_Pengeluaran_BudgetFlow_${new Date().toISOString().slice(0, 10)}.csv`;
+}
+
 export default function FinancialReportsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -101,7 +105,7 @@ export default function FinancialReportsPage() {
     link.setAttribute('href', encodedUri);
     link.setAttribute(
       'download',
-      `Laporan_Keuangan_Pengeluaran_BudgetFlow_${new Date().toISOString().slice(0, 10)}.csv`
+      getFinancialReportFilename()
     );
     document.body.appendChild(link);
     link.click();

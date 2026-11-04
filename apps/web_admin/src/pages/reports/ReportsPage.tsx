@@ -16,6 +16,10 @@ import { useAuthStore } from '@/stores/auth';
 import { cn } from '@/lib/utils';
 import type { ProjectItem } from '@/types';
 
+function getProjectReportFilename(): string {
+  return `Laporan_Proyek_BudgetFlow_${new Date().toISOString().slice(0, 10)}.csv`;
+}
+
 export default function ReportsPage() {
   const { user } = useAuthStore();
   const [search, setSearch] = useState('');
@@ -71,7 +75,7 @@ export default function ReportsPage() {
     link.setAttribute('href', encodedUri);
     link.setAttribute(
       'download',
-      `Laporan_Proyek_BudgetFlow_${new Date().toISOString().slice(0, 10)}.csv`
+      getProjectReportFilename()
     );
     document.body.appendChild(link);
     link.click();

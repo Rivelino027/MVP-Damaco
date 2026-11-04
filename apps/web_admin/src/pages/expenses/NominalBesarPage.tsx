@@ -365,7 +365,7 @@ export default function NominalBesarPage() {
           <div className="flex items-start gap-3">
             <Clock className="mt-0.5 h-5 w-5 shrink-0 text-[#0A47B8]" />
             <div>
-              <p className="font-semibold text-[#0A2E7F]">Usulan Anda Menunggu Konfirmasi</p>
+              <p className="font-semibold text-[#0A2E7F]">Menunggu konfirmasi peran lain</p>
               <p className="text-sm text-[#0A2E7F] mt-0.5">
                 Anda telah mengusulkan perubahan batas menjadi{' '}
                 <span className="font-semibold">{formatRupiah(myPendingProposal.newAmount)}</span>. Menunggu konfirmasi dari pihak{' '}

@@ -146,6 +146,23 @@ function DepartmentAbsorptionCard({ item }: { item: DepartmentAbsorption }) {
   );
 }
 
+function getSuperAdminGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Selamat Pagi';
+  if (h < 15) return 'Selamat Siang';
+  if (h < 18) return 'Selamat Sore';
+  return 'Selamat Malam';
+}
+
+function getSuperAdminDateText(): string {
+  return new Date().toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
 export default function SuperAdminDashboard() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -156,13 +173,8 @@ export default function SuperAdminDashboard() {
     refetchInterval: 60_000,
   });
 
-  const greeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return 'Selamat Pagi';
-    if (h < 15) return 'Selamat Siang';
-    if (h < 18) return 'Selamat Sore';
-    return 'Selamat Malam';
-  };
+  const greetingText = getSuperAdminGreeting();
+  const currentDateText = getSuperAdminDateText();
 
   if (isLoading) {
     return (
@@ -191,7 +203,7 @@ export default function SuperAdminDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold text-text-primary">
-            {greeting()}, {user?.name?.split(' ')[0]} 👋
+            {greetingText}, {user?.name?.split(' ')[0]} 👋
           </h1>
           <p className="text-sm text-text-secondary mt-0.5">
             Ringkasan tata kelola sistem, anggaran perusahaan, dan audit operasional.
@@ -200,7 +212,7 @@ export default function SuperAdminDashboard() {
         <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-3.5 py-1.5 text-xs text-text-secondary shadow-sm">
           <Calendar className="h-3.5 w-3.5 text-primary" />
           <span>
-            {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            {currentDateText}
           </span>
         </div>
       </div>

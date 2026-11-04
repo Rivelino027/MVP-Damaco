@@ -13,6 +13,10 @@ interface HourlyCostFormModalProps {
   preselectedUserId?: string;
 }
 
+function getInitialEffectiveDate(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
 export default function HourlyCostFormModal({
   isOpen,
   onClose,
@@ -22,9 +26,7 @@ export default function HourlyCostFormModal({
 }: HourlyCostFormModalProps) {
   const [userId, setUserId] = useState(preselectedUserId ?? '');
   const [ratePerHour, setRatePerHour] = useState('');
-  const [effectiveFrom, setEffectiveFrom] = useState(
-    new Date().toISOString().split('T')[0],
-  );
+  const [effectiveFrom, setEffectiveFrom] = useState(getInitialEffectiveDate);
   const [error, setError] = useState('');
 
   // Fetch users for the dropdown

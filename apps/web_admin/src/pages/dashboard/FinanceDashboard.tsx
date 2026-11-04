@@ -168,22 +168,44 @@ function DepartmentAbsorptionRow({ item }: { item: DepartmentAbsorption }) {
   );
 }
 
-export default function FinanceDashboard() {
-  const { user } = useAuthStore();
-  const navigate = useNavigate();
+function getFinanceGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Selamat Pagi';
+  if (h < 15) return 'Selamat Siang';
+  if (h < 18) return 'Selamat Sore';
+  return 'Selamat Malam';
+}
 
-  // Filter bulan kalender untuk agregat biaya tenaga kerja
-  const [laborPeriod, setLaborPeriod] = useState<string>('all');
+function getFinanceDateText(): string {
+  return new Date().toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+function generateFinancePeriodOptions(): Array<{ value: string; label: string }> {
   const now = new Date();
-  const laborPeriodOptions: Array<{ value: string; label: string }> = [
+  const options: Array<{ value: string; label: string }> = [
     { value: 'all', label: 'Seluruh Periode' },
   ];
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     const label = d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-    laborPeriodOptions.push({ value: val, label });
+    options.push({ value: val, label });
   }
+  return options;
+}
+
+export default function FinanceDashboard() {
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
+
+  // Filter bulan kalender untuk agregat biaya tenaga kerja
+  const [laborPeriod, setLaborPeriod] = useState<string>('all');
+  const [laborPeriodOptions] = useState(generateFinancePeriodOptions);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['dashboard-finance'],
@@ -191,13 +213,8 @@ export default function FinanceDashboard() {
     refetchInterval: 60_000,
   });
 
-  const greeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return 'Selamat Pagi';
-    if (h < 15) return 'Selamat Siang';
-    if (h < 18) return 'Selamat Sore';
-    return 'Selamat Malam';
-  };
+  const greetingText = getFinanceGreeting();
+  const currentDateText = getFinanceDateText();
 
   if (isLoading) {
     return (
@@ -226,7 +243,7 @@ export default function FinanceDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold text-text-primary">
-            {greeting()}, {user?.name?.split(' ')[0]} 👋
+            {greetingText}, {user?.name?.split(' ')[0]} 👋
           </h1>
           <p className="text-sm text-text-secondary mt-0.5">
             Ringkasan keuangan, verifikasi pengeluaran, dan kas perusahaan.
@@ -235,7 +252,7 @@ export default function FinanceDashboard() {
         <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-3.5 py-1.5 text-xs text-text-secondary shadow-sm">
           <Calendar className="h-3.5 w-3.5 text-primary" />
           <span>
-            {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            {currentDateText}
           </span>
         </div>
       </div>

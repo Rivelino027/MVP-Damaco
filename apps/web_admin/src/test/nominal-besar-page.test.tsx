@@ -139,7 +139,7 @@ describe('Halaman Nominal Besar (Langkah 5)', () => {
       </QueryClientProvider>,
     );
 
-    expect(await screen.findByText('Usulan Anda Menunggu Konfirmasi')).toBeInTheDocument();
+    expect(await screen.findByText('Menunggu konfirmasi peran lain')).toBeInTheDocument();
     expect(
       screen.getByText(/Anda tidak dapat mengonfirmasi usulan Anda sendiri/i),
     ).toBeInTheDocument();

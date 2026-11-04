@@ -18,6 +18,20 @@ interface ProjectLaborCostTabProps {
   projectId: string;
 }
 
+function generatePeriodOptions(): Array<{ value: string; label: string }> {
+  const now = new Date();
+  const options: Array<{ value: string; label: string }> = [
+    { value: 'all', label: 'Seluruh Periode Proyek' },
+  ];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    options.push({ value: val, label });
+  }
+  return options;
+}
+
 export default function ProjectLaborCostTab({ projectId }: ProjectLaborCostTabProps) {
   const currentUser = useAuthStore((state) => state.user);
   const isSuperAdmin = currentUser?.role === 'super_admin';
@@ -44,16 +58,7 @@ export default function ProjectLaborCostTab({ projectId }: ProjectLaborCostTabPr
   });
 
   // Generate options for the last 12 months
-  const now = new Date();
-  const periodOptions: Array<{ value: string; label: string }> = [
-    { value: 'all', label: 'Seluruh Periode Proyek' },
-  ];
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const label = d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-    periodOptions.push({ value: val, label });
-  }
+  const [periodOptions] = useState(generatePeriodOptions);
 
   return (
     <div className="space-y-6">

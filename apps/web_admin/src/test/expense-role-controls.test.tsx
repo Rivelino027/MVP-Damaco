@@ -423,7 +423,7 @@ describe('Persetujuan Pengeluaran & Kontrol Akses Peran (Langkah 4)', () => {
     );
 
     expect(
-      await screen.findByText(/Super Admin: Akses baca saja/i),
+      await screen.findByText(/Super Admin tidak termasuk rantai persetujuan pengeluaran/i),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Setujui/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Verifikasi/i })).not.toBeInTheDocument();

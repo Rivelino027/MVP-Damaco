@@ -399,7 +399,7 @@ export function ExpenseDetailModal({ expense, onClose, onApprove, onReject, onPa
             {isSuperAdmin && (
               <div className="flex items-center gap-1.5 text-xs text-text-secondary">
                 <Lock className="h-3.5 w-3.5 text-text-placeholder" />
-                <span>Super Admin: Akses baca saja (tidak dapat menyetujui pengeluaran).</span>
+                <span>Super Admin tidak termasuk rantai persetujuan pengeluaran</span>
               </div>
             )}
             {isRequester && (

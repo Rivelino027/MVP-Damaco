@@ -133,7 +133,7 @@ export default function ExpensesPage() {
             </h1>
             <p className="text-sm text-text-secondary">
               {isSuperAdmin
-                ? 'Mode baca saja — Super Admin tidak dapat melakukan aksi persetujuan pengeluaran'
+                ? 'Super Admin tidak termasuk rantai persetujuan pengeluaran'
                 : isFinance
                 ? 'Verifikasi dan catat pembayaran pengeluaran tim'
                 : 'Tinjau dan setujui pengajuan pengeluaran dari tim'}
@@ -306,7 +306,7 @@ export default function ExpensesPage() {
                         {/* Super Admin: hanya baca, tampilkan badge informatif */}
                         {isSuperAdmin && (
                           <span
-                            title="Super Admin hanya dapat melihat pengeluaran, tidak dapat melakukan aksi persetujuan"
+                            title="Super Admin tidak termasuk rantai persetujuan pengeluaran"
                             className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-medium text-gray-500 cursor-default select-none"
                           >
                             Hanya Baca

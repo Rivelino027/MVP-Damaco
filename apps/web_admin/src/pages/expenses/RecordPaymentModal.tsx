@@ -17,8 +17,12 @@ function formatRupiah(value: string | number | null | undefined): string {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
 }
 
+function getTodayDateString(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
 export function RecordPaymentModal({ expense, onClose, onSuccess }: Props) {
-  const today = new Date().toISOString().split('T')[0];
+  const [today] = useState(getTodayDateString);
   const [method, setMethod] = useState<PaymentMethod>('transfer');
   const [referenceNo, setReferenceNo] = useState('');
   const [paidAt, setPaidAt] = useState(today);
