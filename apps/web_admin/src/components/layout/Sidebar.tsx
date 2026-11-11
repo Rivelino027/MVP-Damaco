@@ -107,10 +107,10 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      'group flex items-center gap-3 rounded-[var(--radius-pill)] px-4 py-2.5 text-sm font-medium transition-all duration-200',
+      'group flex items-center gap-3 rounded-[var(--radius-pill)] px-4 py-2.5 text-xs sm:text-sm font-medium transition-all duration-200',
       isActive
-        ? 'gradient-primary text-white shadow-sm font-semibold'
-        : 'text-text-secondary hover:bg-black/5 hover:text-text-primary',
+        ? 'gradient-primary text-white shadow-[0_4px_15px_rgba(232,20,28,0.35)] font-semibold'
+        : 'text-slate-400 hover:bg-white/10 hover:text-white',
     );
 
   return (
@@ -118,37 +118,38 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
       {/* Overlay Mobile */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-darkest/40 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={onCloseMobile}
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container (Dark Enterprise Workspace Theme) */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-white/90 backdrop-blur-xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[#1E293B] bg-[#0B0F19] text-white shadow-2xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
         {/* Brand Header */}
-        <div className="flex h-20 items-center justify-between border-b border-border/60 px-6">
+        <div className="flex h-20 items-center justify-between border-b border-white/10 px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white p-1.5 shadow-sm border border-border">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-md border border-white/20 p-1.5 transition-transform hover:scale-105">
               <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />
             </div>
             <div className="flex flex-col">
-              <span className="font-heading text-lg font-bold tracking-tight text-text-primary">
-                BudgetFlow
+              <span className="font-heading text-lg font-black tracking-tight text-white">
+                Budget<span className="text-primary-bright">Flow</span>
               </span>
-              <span className="text-[11px] text-text-placeholder">
-                PT. Dunia Maya Communica
+              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-300/80">
+                ENTERPRISE WORKSPACE
               </span>
             </div>
           </div>
+
           {/* Close button on mobile */}
           <button
             onClick={onCloseMobile}
-            className="rounded-lg p-1.5 text-text-placeholder hover:bg-background hover:text-text-primary lg:hidden"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white lg:hidden cursor-pointer"
             aria-label="Tutup Menu"
           >
             <X className="h-5 w-5" />
@@ -158,7 +159,7 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
         {/* Navigation list */}
         <div className="flex-1 overflow-y-auto px-4 py-5 scrollbar-thin">
           <div className="space-y-1">
-            <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-text-placeholder">
+            <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
               Menu Utama
             </div>
             {main.map((item) => {
@@ -180,8 +181,8 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
 
           {/* Bagian Sistem untuk Super Admin */}
           {system && (
-            <div className="mt-6 space-y-1 border-t border-border/60 pt-5">
-              <div className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-text-placeholder">
+            <div className="mt-6 space-y-1 border-t border-white/10 pt-5">
+              <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
                 Sistem
               </div>
               {system.map((item) => {
@@ -203,7 +204,7 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
         </div>
 
         {/* Profile Menu Bottom */}
-        <div className="relative border-t border-border/60 p-4">
+        <div className="relative border-t border-white/10 p-4">
           {/* Popover Menu Profil */}
           {profileOpen && (
             <>
@@ -211,12 +212,12 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
                 className="fixed inset-0 z-10"
                 onClick={() => setProfileOpen(false)}
               />
-              <div className="absolute bottom-full left-4 right-4 z-20 mb-2 rounded-[var(--radius-card)] border border-border bg-white p-3 shadow-xl animate-in fade-in slide-in-from-bottom-2">
-                <div className="border-b border-border/60 pb-3">
-                  <p className="truncate text-sm font-semibold text-text-primary">
+              <div className="absolute bottom-full left-4 right-4 z-20 mb-2 rounded-2xl border border-slate-700 bg-[#161F32] p-3.5 shadow-2xl animate-in fade-in slide-in-from-bottom-2 text-white">
+                <div className="border-b border-white/10 pb-3">
+                  <p className="truncate text-sm font-semibold text-white">
                     {user.name}
                   </p>
-                  <p className="truncate text-xs text-text-placeholder">
+                  <p className="truncate text-xs text-slate-400">
                     {user.email}
                   </p>
                   <div className="mt-2">
@@ -224,16 +225,16 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
                   </div>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-2 space-y-1">
                   <button
                     onClick={() => {
                       setProfileOpen(false);
                       onCloseMobile?.();
                       navigate('/ganti-kata-sandi');
                     }}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-text-secondary hover:bg-background hover:text-text-primary"
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white cursor-pointer"
                   >
-                    <KeyRound className="h-4 w-4 text-text-placeholder" />
+                    <KeyRound className="h-4 w-4 text-slate-400" />
                     Ubah Kata Sandi
                   </button>
 
@@ -243,7 +244,7 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
                       onCloseMobile?.();
                       handleLogout();
                     }}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-danger hover:bg-danger-tint"
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-danger hover:bg-danger-tint cursor-pointer"
                   >
                     <LogOut className="h-4 w-4 text-danger" />
                     Keluar dari Akun
@@ -256,14 +257,14 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
           {/* Trigger button for profile */}
           <button
             onClick={() => setProfileOpen(!profileOpen)}
-            className="flex w-full items-center justify-between rounded-[var(--radius-input)] border border-border/60 bg-white/60 p-2.5 text-left transition-colors hover:bg-white"
+            className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-2.5 text-left transition-colors hover:bg-white/10 cursor-pointer"
           >
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full gradient-primary text-xs font-bold text-white shadow-sm">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl gradient-primary text-xs font-bold text-white shadow-xs">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-text-primary">
+                <p className="truncate text-xs font-semibold text-white">
                   {user.name}
                 </p>
                 <div className="mt-0.5">
@@ -273,7 +274,7 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: SidebarProps) {
             </div>
             <ChevronDown
               className={cn(
-                'h-4 w-4 shrink-0 text-text-placeholder transition-transform duration-200',
+                'h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200',
                 profileOpen && 'rotate-180',
               )}
             />

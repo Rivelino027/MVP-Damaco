@@ -37,26 +37,26 @@ export default function RejectTimesheetModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-      <div className="relative w-full max-w-md rounded-[var(--radius-card)] border border-border bg-white p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-md rounded-2xl border border-border bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
         <button
           onClick={onClose}
           disabled={isLoading}
-          className="absolute right-4 top-4 rounded-full p-1 text-text-secondary hover:bg-neutral-100 hover:text-text-primary transition-colors"
+          className="absolute right-4 top-4 rounded-full p-1.5 text-text-secondary hover:bg-slate-100 hover:text-text-primary transition-colors"
           aria-label="Tutup"
         >
           <X className="h-5 w-5" />
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-danger-tint border border-danger/20 text-danger">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-danger-tint border border-danger/20 text-danger">
             <X className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-heading text-lg font-bold text-text-primary">
+            <h3 className="font-heading text-lg font-bold text-text-primary tracking-tight">
               Tolak Timesheet
             </h3>
-            <p className="text-xs text-text-secondary">
-              Pekerja: <span className="font-medium text-text-primary">{workerName}</span>
+            <p className="text-xs text-text-secondary mt-0.5">
+              Pekerja: <span className="font-semibold text-text-primary">{workerName}</span>
             </p>
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function RejectTimesheetModal({
                 if (error) setError('');
               }}
               placeholder="Jelaskan alasan mengapa timesheet ini ditolak..."
-              className="w-full rounded-[var(--radius-input)] border border-border bg-white px-3 py-2 text-sm text-text-primary placeholder:text-text-placeholder focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary"
+              className="w-full rounded-xl border border-border bg-slate-50/50 p-3 text-sm text-text-primary placeholder:text-text-placeholder focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all outline-none"
               disabled={isLoading}
             />
             {error && (
@@ -89,23 +89,25 @@ export default function RejectTimesheetModal({
             )}
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-border">
+          <div className="flex justify-end gap-2.5 pt-3 border-t border-border">
             <Button
               type="button"
               variant="secondary"
+              size="md"
               onClick={onClose}
               disabled={isLoading}
             >
               Batal
             </Button>
-            <button
+            <Button
               type="submit"
+              variant="reject"
+              size="md"
+              rejectIcon
               disabled={isLoading}
-              className="inline-flex items-center gap-1.5 rounded-[var(--radius-button)] border border-border bg-white px-4 py-2 text-sm font-semibold text-[#B0000F] hover:bg-[#FCE4E7] transition-colors disabled:opacity-50"
             >
-              <X className="h-4 w-4" />
               {isLoading ? 'Menolak...' : 'Tolak Timesheet'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

@@ -11,7 +11,6 @@ import {
   Lock,
   Edit2,
   Trash2,
-  AlertCircle,
   ExternalLink,
   DollarSign,
   Wallet,
@@ -19,7 +18,7 @@ import {
 import { useAuthStore } from '@/stores/auth';
 import { getProjectApi, closeProjectApi, deleteProjectApi } from '@/lib/api-projects';
 import { getDepartmentsApi } from '@/lib/api-super-admin';
-import { Button, StatusBadge, ConfirmDialog, toast } from '@/components/shared';
+import { Button, StatusBadge, ConfirmDialog, ErrorState, toast } from '@/components/shared';
 import { formatDate, extractErrorMessage } from '@/lib/utils';
 import ProjectFormModal from './ProjectFormModal';
 import ProjectTeamTab from './ProjectTeamTab';
@@ -113,10 +112,10 @@ export default function ProjectDetailPage() {
         >
           <ArrowLeft className="h-4 w-4" /> Kembali ke Daftar Proyek
         </button>
-        <div className="rounded-[var(--radius-card)] border border-danger/20 bg-danger-tint p-6 text-center text-sm text-danger">
-          <AlertCircle className="h-6 w-6 mx-auto mb-2 text-danger" />
-          Proyek tidak ditemukan atau Anda tidak memiliki akses ke proyek ini.
-        </div>
+        <ErrorState
+          message={extractErrorMessage(projectQuery.error, 'Proyek tidak ditemukan atau Anda tidak memiliki akses ke proyek ini.')}
+          onRetry={() => projectQuery.refetch()}
+        />
       </div>
     );
   }

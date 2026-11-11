@@ -11,11 +11,10 @@ import {
   Paperclip,
   ChevronLeft,
   ChevronRight,
-  AlertCircle,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import { getProjectApi, getTasksApi, updateTaskStatusApi } from '@/lib/api-projects';
-import { Button, toast } from '@/components/shared';
+import { Button, ErrorState, toast } from '@/components/shared';
 import { formatDate, extractErrorMessage } from '@/lib/utils';
 import TaskFormModal from './TaskFormModal';
 import TaskDetailModal from './TaskDetailModal';
@@ -171,10 +170,10 @@ export default function ProjectKanbanPage() {
         >
           <ArrowLeft className="h-4 w-4" /> Kembali ke Proyek
         </button>
-        <div className="rounded-[var(--radius-card)] border border-danger/20 bg-danger-tint p-6 text-center text-sm text-danger">
-          <AlertCircle className="h-6 w-6 mx-auto mb-2 text-danger" />
-          Proyek tidak ditemukan.
-        </div>
+        <ErrorState
+          message={extractErrorMessage(projectQuery.error, 'Proyek tidak ditemukan atau gagal dimuat.')}
+          onRetry={() => projectQuery.refetch()}
+        />
       </div>
     );
   }

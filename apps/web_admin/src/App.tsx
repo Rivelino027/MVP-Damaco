@@ -19,7 +19,8 @@ import ProjectDetailPage from '@/pages/projects/ProjectDetailPage';
 import ProjectKanbanPage from '@/pages/projects/ProjectKanbanPage';
 import TimesheetsPage from '@/pages/timesheets/TimesheetsPage';
 import HourlyCostsPage from '@/pages/super-admin/hourly-costs/HourlyCostsPage';
-import ExpensesPage from '@/pages/expenses/ExpensesPage';
+import ApprovalsInboxPage from '@/pages/approvals/ApprovalsInboxPage';
+import PaymentsPage from '@/pages/payments/PaymentsPage';
 import NominalBesarPage from '@/pages/expenses/NominalBesarPage';
 import BudgetRequestsPage from '@/pages/budgets/BudgetRequestsPage';
 import ReportsPage from '@/pages/reports/ReportsPage';
@@ -99,7 +100,7 @@ export default function App() {
                 path="/persetujuan"
                 element={
                   <RoleRoute allowedRoles={['admin', 'finance', 'super_admin']}>
-                    <ExpensesPage />
+                    <ApprovalsInboxPage />
                   </RoleRoute>
                 }
               />
@@ -133,7 +134,7 @@ export default function App() {
                 path="/pembayaran"
                 element={
                   <RoleRoute allowedRoles={['finance']}>
-                    <ExpensesPage />
+                    <PaymentsPage />
                   </RoleRoute>
                 }
               />

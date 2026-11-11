@@ -109,17 +109,27 @@ export default function HourlyCostsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6 p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-text-primary flex items-center gap-2.5">
-            <DollarSign className="h-6 w-6 text-primary" />
-            Biaya per Jam (Hourly Costs)
-          </h1>
-          <p className="text-sm text-text-secondary mt-1">
-            Kelola tarif dasar per jam karyawan untuk perhitungan snapshot biaya tenaga kerja
-          </p>
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl gradient-primary shadow-sm shadow-primary/20">
+            <DollarSign className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="font-heading text-2xl font-bold tracking-tight text-text-primary">
+                Biaya per Jam
+              </h1>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/20 bg-purple-50 px-2.5 py-0.5 text-[11px] font-semibold text-purple-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-purple-500 animate-pulse" />
+                Khusus Super Admin
+              </span>
+            </div>
+            <p className="text-sm text-text-secondary mt-0.5">
+              Kelola tarif dasar per jam karyawan untuk perhitungan snapshot biaya tenaga kerja
+            </p>
+          </div>
         </div>
 
         <Button
@@ -128,11 +138,68 @@ export default function HourlyCostsPage() {
             setSelectedUserForNewRate(undefined);
             setIsFormModalOpen(true);
           }}
-          className="self-start sm:self-auto"
+          className="self-start sm:self-auto rounded-xl shadow-xs"
         >
           <Plus className="h-4 w-4" />
           Tetapkan Tarif Baru
         </Button>
+      </div>
+
+      {/* Enterprise Metrics Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Karyawan Bertarif Card */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Karyawan Bertarif</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+              Snapshot Aktif
+            </span>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-heading text-3xl font-extrabold text-text-primary tracking-tight">
+              {displayItems.length}
+            </span>
+            <span className="text-xs text-text-placeholder">tarif terkonfigurasi</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-text-secondary">
+            <span>Sesuai Aturan Bisnis #3</span>
+            <span className="text-purple-600 font-medium">Kerahasiaan Tinggi</span>
+          </div>
+        </div>
+
+        {/* Card 2: Snapshot Non-Retroaktif */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Mekanisme Snapshot</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue">
+              <History className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="font-heading text-sm font-bold text-text-primary">Non-Retroaktif</span>
+            <p className="text-xs text-text-placeholder mt-0.5">Perubahan tarif hanya berlaku untuk timesheet mendatang</p>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-blue font-medium">
+            <span>Histori Masa Lalu Terkunci</span>
+          </div>
+        </div>
+
+        {/* Card 3: Pembatasan Scope */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Isolasi Server</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[#48742C]">
+              <DollarSign className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="font-heading text-sm font-bold text-text-primary">Admin & Finance Agregat</span>
+            <p className="text-xs text-text-placeholder mt-0.5">Backend menyembunyikan nominal per individu</p>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-[#48742C] font-medium">
+            <span>Perlindungan Guard Backend</span>
+          </div>
+        </div>
       </div>
 
       {/* Notice Banner */}

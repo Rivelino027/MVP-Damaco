@@ -280,14 +280,20 @@ export default function NominalBesarPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary">
-            <Flag className="h-5 w-5 text-white" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl gradient-primary shadow-sm shadow-primary/20">
+            <Flag className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="font-heading text-2xl font-bold text-text-primary">Nominal Besar</h1>
-            <p className="text-sm text-text-secondary">Batas penanda pengeluaran nominal besar</p>
+            <div className="flex items-center gap-2">
+              <h1 className="font-heading text-2xl font-bold tracking-tight text-text-primary">Nominal Besar</h1>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                Penanda Wajib Nota & Alasan
+              </span>
+            </div>
+            <p className="text-sm text-text-secondary mt-0.5">Batas penanda pengeluaran nominal besar (mekanisme dua pihak)</p>
           </div>
         </div>
 
@@ -303,7 +309,7 @@ export default function NominalBesarPage() {
             <button
               id="btn-propose-limit"
               onClick={() => setShowProposeModal(true)}
-              className="flex items-center gap-2 rounded-xl gradient-primary px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:opacity-90 transition-opacity"
+              className="flex items-center gap-2 rounded-xl gradient-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity"
             >
               <Plus className="h-4 w-4" />
               Usulkan Perubahan
@@ -312,13 +318,18 @@ export default function NominalBesarPage() {
         </div>
       </div>
 
-      {/* Batas saat ini */}
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FDF0DC]">
-            <Flag className="h-4 w-4 text-[#B56910]" />
+      {/* Card: Batas Saat Ini */}
+      <div className="rounded-2xl bg-white p-6 text-text-primary shadow-xs border border-border">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-primary">
+              <Flag className="h-4 w-4" />
+            </div>
+            <h2 className="font-heading text-lg font-bold text-text-primary tracking-tight">Batas Saat Ini</h2>
           </div>
-          <h2 className="font-heading text-lg font-semibold text-text-primary">Batas Saat Ini</h2>
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+            Dua Pihak: Admin & Finance
+          </span>
         </div>
 
         {limitLoading ? (
@@ -332,25 +343,25 @@ export default function NominalBesarPage() {
           />
         ) : (
           <>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-baseline gap-4 sm:gap-8">
               <div>
-                <p className="text-xs text-text-placeholder mb-1">Batas Nominal Besar</p>
-                <p className="font-heading text-4xl font-bold text-text-primary">
+                <p className="text-xs uppercase tracking-wider text-text-secondary mb-1">Threshold Pengeluaran</p>
+                <p className="font-heading text-4xl sm:text-5xl font-extrabold tracking-tight text-text-primary">
                   {currentLimit ? formatRupiah(currentLimit.amount) : <span className="text-text-placeholder text-2xl">Belum ditetapkan</span>}
                 </p>
               </div>
               {currentLimit && (
-                <div className="border-l border-border pl-6">
-                  <p className="text-xs text-text-placeholder mb-1">Berlaku sejak</p>
-                  <p className="text-sm font-medium text-text-secondary">{formatDate(currentLimit.effectiveFrom)}</p>
+                <div className="sm:border-l sm:border-slate-200 sm:pl-8">
+                  <p className="text-xs uppercase tracking-wider text-text-secondary mb-1">Berlaku Sejak</p>
+                  <p className="text-sm font-semibold text-text-primary">{formatDate(currentLimit.effectiveFrom)}</p>
                 </div>
               )}
             </div>
 
             {isSuperAdmin && (
-              <div className="mt-4 flex items-start gap-2 rounded-xl bg-[#E8F1FD] border border-blue-200 p-3">
-                <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[#0A47B8]" />
-                <p className="text-xs text-[#0A47B8]">
+              <div className="mt-5 flex items-start gap-2.5 rounded-xl bg-amber-50/60 border border-amber-200/80 p-3.5">
+                <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                <p className="text-xs text-amber-900">
                   Super Admin hanya dapat membaca batas ini (baca saja). Perubahan batas harus diusulkan oleh Admin dan dikonfirmasi oleh Finance, atau sebaliknya.
                 </p>
               </div>

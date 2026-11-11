@@ -5,15 +5,18 @@ import {
   Search,
   Filter,
   AlertTriangle,
-  CheckCircle,
   XCircle,
   CreditCard,
   Eye,
+  Check,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import { getExpenses, approveExpenseAdmin, verifyExpenseFinance } from '@/lib/api-expenses';
 import { cn, extractErrorMessage } from '@/lib/utils';
-import { ErrorState } from '@/components/shared';
+import { Button, ErrorState } from '@/components/shared';
 import type { Expense, ExpenseStatus } from '@/types/expenses';
 import { ExpenseDetailModal } from './ExpenseDetailModal';
 import { RejectExpenseModal } from './RejectExpenseModal';
@@ -122,16 +125,22 @@ export default function ExpensesPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary">
-            <Receipt className="h-5 w-5 text-white" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl gradient-primary shadow-sm shadow-primary/20">
+            <Receipt className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="font-heading text-2xl font-bold text-text-primary">
-              {isFinance ? 'Verifikasi Pengeluaran' : 'Persetujuan Pengeluaran'}
-            </h1>
-            <p className="text-sm text-text-secondary">
+            <div className="flex items-center gap-2">
+              <h1 className="font-heading text-2xl font-bold tracking-tight text-text-primary">
+                {isFinance ? 'Verifikasi Pengeluaran' : 'Persetujuan Pengeluaran'}
+              </h1>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                {isAdmin ? 'Admin Departemen' : isFinance ? 'Finance Desk' : 'Audit Log'}
+              </span>
+            </div>
+            <p className="text-sm text-text-secondary mt-0.5">
               {isSuperAdmin
                 ? 'Super Admin tidak termasuk rantai persetujuan pengeluaran'
                 : isFinance
@@ -155,6 +164,68 @@ export default function ExpensesPage() {
         </div>
       </div>
 
+      {/* Enterprise Metrics Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Antrean Persetujuan Card */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Antrean Persetujuan</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+              {isAdmin ? 'Tahap 1 Admin' : isFinance ? 'Tahap 2 Finance' : 'Monitoring'}
+            </span>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-heading text-3xl font-extrabold text-text-primary tracking-tight">
+              {expenses.filter((e) => e.status === (isFinance ? 'menunggu_finance' : 'menunggu_admin')).length}
+            </span>
+            <span className="text-xs text-text-placeholder">item memerlukan tindakan</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-text-secondary">
+            <span>Audit Rantai Persetujuan</span>
+            <span className="text-emerald-700 font-medium">Aktif</span>
+          </div>
+        </div>
+
+        {/* Card 2: Total Nilai Pengeluaran */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Total Nilai Tersaring</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-primary">
+              <Receipt className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="font-heading text-xl font-bold text-text-primary">
+              {formatRupiah(
+                filtered.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0)
+              )}
+            </span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-text-secondary">
+            <span>Dari {filtered.length} pengeluaran di halaman ini</span>
+          </div>
+        </div>
+
+        {/* Card 3: Nominal Besar Tag */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Nominal Besar</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+              <AlertTriangle className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-heading text-2xl font-bold text-text-primary">
+              {expenses.filter((e) => e.isLargeAmount).length}
+            </span>
+            <span className="text-xs text-text-placeholder">pengeluaran</span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-amber-700 font-medium">
+            <span>Wajib Nota & Alasan Tertulis</span>
+          </div>
+        </div>
+      </div>
+
       {/* Banner Pesan Error Backend / Pengeluaran Tertahan */}
       {actionError && (
         <div className="flex items-start justify-between rounded-xl border border-[#B0000F]/30 bg-[#FCE4E7] p-4 text-xs text-[#B0000F]">
@@ -175,24 +246,24 @@ export default function ExpensesPage() {
       )}
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="rounded-2xl border border-border bg-white p-4 shadow-xs flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[220px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-placeholder" />
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-placeholder" />
           <input
             type="text"
             placeholder="Cari pengaju, proyek, vendor..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-border bg-white py-2 pl-9 pr-4 text-sm text-text-primary placeholder:text-text-placeholder focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="h-10 w-full rounded-xl border border-border bg-slate-50/50 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-placeholder focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-text-secondary" />
+        <div className="relative min-w-[170px]">
+          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-placeholder pointer-events-none" />
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            className="rounded-xl border border-border bg-white px-3 py-2 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="h-10 w-full appearance-none rounded-xl border border-border bg-slate-50/50 pl-9 pr-8 text-sm text-text-primary focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
           >
             <option value="">Semua Status</option>
             <option value="menunggu_admin">Menunggu Admin</option>
@@ -202,20 +273,32 @@ export default function ExpensesPage() {
             <option value="dibayar">Dibayar</option>
             <option value="ditolak">Ditolak</option>
           </select>
-
-          <button
-            onClick={() => { setLargeAmountFilter(largeAmountFilter ? undefined : true); setPage(1); }}
-            className={cn(
-              'flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition-all',
-              largeAmountFilter
-                ? 'border-[#F29D38]/50 bg-[#FDF0DC] text-[#8A550F]'
-                : 'border-border bg-white text-text-secondary hover:border-primary/30 hover:text-text-primary',
-            )}
-          >
-            <AlertTriangle className="h-3.5 w-3.5" />
-            Nominal Besar
-          </button>
         </div>
+
+        <button
+          onClick={() => { setLargeAmountFilter(largeAmountFilter ? undefined : true); setPage(1); }}
+          className={cn(
+            'h-10 flex items-center gap-1.5 rounded-xl border px-3.5 text-xs font-semibold transition-all cursor-pointer',
+            largeAmountFilter
+              ? 'border-[#F29D38]/50 bg-[#FDF0DC] text-[#8A550F]'
+              : 'border-border bg-slate-50/50 text-text-secondary hover:border-primary/30 hover:text-text-primary hover:bg-white',
+          )}
+        >
+          <AlertTriangle className="h-3.5 w-3.5" />
+          <span>Nominal Besar</span>
+        </button>
+
+        {(search || statusFilter || largeAmountFilter) && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => { setSearch(''); setStatusFilter(''); setLargeAmountFilter(undefined); setPage(1); }}
+            className="h-10 text-xs text-text-secondary hover:text-text-primary"
+          >
+            Reset Filter
+          </Button>
+        )}
       </div>
 
       {/* Table */}
@@ -298,16 +381,17 @@ export default function ExpensesPage() {
                           id={`expense-detail-${expense.id}`}
                           onClick={() => setSelectedExpense(expense)}
                           title="Lihat Detail"
-                          className="rounded-lg p-1.5 text-text-secondary hover:bg-background hover:text-primary transition-colors"
+                          className="h-8 inline-flex items-center gap-1 rounded-lg border border-border bg-white px-2.5 text-xs font-medium text-text-primary hover:bg-slate-50 transition-colors shadow-2xs"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3.5 w-3.5" />
+                          Detail
                         </button>
 
                         {/* Super Admin: hanya baca, tampilkan badge informatif */}
                         {isSuperAdmin && (
                           <span
                             title="Super Admin tidak termasuk rantai persetujuan pengeluaran"
-                            className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-medium text-gray-500 cursor-default select-none"
+                            className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-medium text-slate-500 cursor-default select-none"
                           >
                             Hanya Baca
                           </span>
@@ -324,9 +408,9 @@ export default function ExpensesPage() {
                               id={`expense-reject-admin-${expense.id}`}
                               onClick={() => setRejectTarget(expense)}
                               title="Tolak"
-                              className="rounded-lg border border-[#EBE3E4] px-2.5 py-1.5 text-xs font-medium text-[#B0000F] hover:bg-[#FCE4E7] transition-colors flex items-center gap-1"
+                              className="h-8 inline-flex items-center gap-1 rounded-lg border border-border bg-white px-3 text-xs font-semibold text-primary-dark hover:bg-danger-tint transition-colors shadow-2xs"
                             >
-                              <XCircle className="h-3.5 w-3.5" />
+                              <X className="h-3.5 w-3.5" />
                               Tolak
                             </button>
                           </>
@@ -343,9 +427,9 @@ export default function ExpensesPage() {
                               id={`expense-reject-finance-${expense.id}`}
                               onClick={() => setRejectTarget(expense)}
                               title="Tolak"
-                              className="rounded-lg border border-[#EBE3E4] px-2.5 py-1.5 text-xs font-medium text-[#B0000F] hover:bg-[#FCE4E7] transition-colors flex items-center gap-1"
+                              className="h-8 inline-flex items-center gap-1 rounded-lg border border-border bg-white px-3 text-xs font-semibold text-primary-dark hover:bg-danger-tint transition-colors shadow-2xs"
                             >
-                              <XCircle className="h-3.5 w-3.5" />
+                              <X className="h-3.5 w-3.5" />
                               Tolak
                             </button>
                           </>
@@ -356,9 +440,9 @@ export default function ExpensesPage() {
                           <button
                             disabled
                             title="Anda tidak dapat menyetujui pengeluaran milik Anda sendiri"
-                            className="rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-400 flex items-center gap-1 cursor-not-allowed opacity-60"
+                            className="h-8 inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 text-xs font-medium text-slate-400 cursor-not-allowed opacity-75"
                           >
-                            <CheckCircle className="h-3.5 w-3.5" />
+                            <Check className="h-3.5 w-3.5" />
                             Setujui
                           </button>
                         )}
@@ -368,9 +452,9 @@ export default function ExpensesPage() {
                           <button
                             disabled
                             title="Anda tidak dapat memverifikasi pengeluaran milik Anda sendiri"
-                            className="rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-400 flex items-center gap-1 cursor-not-allowed opacity-60"
+                            className="h-8 inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 text-xs font-medium text-slate-400 cursor-not-allowed opacity-75"
                           >
-                            <CheckCircle className="h-3.5 w-3.5" />
+                            <Check className="h-3.5 w-3.5" />
                             Verifikasi
                           </button>
                         )}
@@ -379,7 +463,7 @@ export default function ExpensesPage() {
                           <button
                             id={`expense-payment-${expense.id}`}
                             onClick={() => setPaymentTarget(expense)}
-                            className="rounded-lg gradient-primary px-2.5 py-1.5 text-xs font-medium text-white flex items-center gap-1 shadow-sm"
+                            className="h-8 inline-flex items-center gap-1.5 rounded-lg gradient-primary px-3 text-xs font-semibold text-white shadow-2xs hover:opacity-95 transition-opacity"
                           >
                             <CreditCard className="h-3.5 w-3.5" />
                             Bayar
@@ -396,23 +480,29 @@ export default function ExpensesPage() {
 
         {/* Pagination */}
         {total > 20 && (
-          <div className="flex items-center justify-between border-t border-border px-5 py-3">
-            <p className="text-sm text-text-secondary">Total {total} pengeluaran</p>
-            <div className="flex gap-2">
-              <button
+          <div className="flex items-center justify-between border-t border-border px-5 py-3.5 bg-slate-50/60">
+            <p className="text-xs text-text-secondary">
+              Total <span className="font-semibold text-text-primary">{total}</span> pengeluaran
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="rounded-lg border border-border px-3 py-1.5 text-sm text-text-secondary disabled:opacity-40 hover:bg-background"
               >
+                <ChevronLeft className="h-4 w-4" />
                 Sebelumnya
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 disabled={page * 20 >= total}
                 onClick={() => setPage((p) => p + 1)}
-                className="rounded-lg border border-border px-3 py-1.5 text-sm text-text-secondary disabled:opacity-40 hover:bg-background"
               >
                 Berikutnya
-              </button>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         )}
@@ -470,9 +560,9 @@ function ApproveButton({
       id={`expense-approve-admin-${expenseId}`}
       onClick={() => mutation.mutate()}
       disabled={mutation.isPending}
-      className="rounded-lg gradient-primary px-2.5 py-1.5 text-xs font-medium text-white flex items-center gap-1 shadow-sm disabled:opacity-60"
+      className="h-8 inline-flex items-center gap-1 rounded-lg gradient-primary px-3 text-xs font-semibold text-white shadow-2xs hover:opacity-95 transition-opacity disabled:opacity-50"
     >
-      <CheckCircle className="h-3.5 w-3.5" />
+      <Check className="h-3.5 w-3.5" />
       {mutation.isPending ? 'Memproses...' : 'Setujui'}
     </button>
   );
@@ -500,9 +590,9 @@ function VerifyButton({
       id={`expense-verify-finance-${expenseId}`}
       onClick={() => mutation.mutate()}
       disabled={mutation.isPending}
-      className="rounded-lg gradient-primary px-2.5 py-1.5 text-xs font-medium text-white flex items-center gap-1 shadow-sm disabled:opacity-60"
+      className="h-8 inline-flex items-center gap-1 rounded-lg gradient-primary px-3 text-xs font-semibold text-white shadow-2xs hover:opacity-95 transition-opacity disabled:opacity-50"
     >
-      <CheckCircle className="h-3.5 w-3.5" />
+      <Check className="h-3.5 w-3.5" />
       {mutation.isPending ? 'Memproses...' : 'Verifikasi'}
     </button>
   );

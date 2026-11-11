@@ -218,60 +218,110 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* KPI Top Row */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {[
-          {
-            label: 'Total Anggaran Perusahaan',
-            value: formatRupiah(d?.totalBudgetCompany),
-            sub: `Terpakai: ${formatRupiah(d?.totalUsedCompany)} (${Math.round(d?.absorptionPctCompany ?? 0)}%)`,
-            icon: Wallet,
-            color: 'from-[#0A47B8] to-[#0A2E7F]',
-            onClick: () => navigate('/anggaran'),
-          },
-          {
-            label: 'Proyek Aktif (Semua Dept)',
-            value: d?.activeProjects ?? 0,
-            sub: 'Seluruh operasional aktif',
-            icon: FolderKanban,
-            color: 'from-[#E8141C] to-[#B0000F]',
-            onClick: () => navigate('/proyek'),
-          },
-          {
-            label: 'Total Pengguna',
-            value: d?.totalUsers ?? 0,
-            sub: 'Kelola akun & hak akses',
-            icon: Users,
-            color: 'from-[#48742C] to-[#2D5219]',
-            onClick: () => navigate('/sistem/pengguna'),
-          },
-          {
-            label: 'Keputusan Anggaran Menunggu',
-            value: d?.pendingBudgetDecisions ?? 0,
-            sub: 'Tahap akhir Super Admin',
-            icon: CheckSquare,
-            color: 'from-[#F29D38] to-[#B56910]',
-            onClick: () => navigate('/anggaran'),
-          },
-        ].map(({ label, value, sub, icon: Icon, color, onClick }) => (
-          <button
-            key={label}
-            onClick={onClick}
-            className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-100`} />
-            <div className="relative z-10 flex items-center justify-between">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
-                <Icon className="h-4 w-4 text-white" />
-              </div>
-              <ArrowRight className="h-4 w-4 text-white/60 transition-transform group-hover:translate-x-1" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Total Anggaran Perusahaan */}
+        <button
+          onClick={() => navigate('/anggaran')}
+          className="group relative flex flex-col justify-between overflow-hidden rounded-3xl p-5 text-left bg-white border border-slate-200/80 shadow-xs hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-50 text-primary border border-rose-100 shadow-2xs">
+              <Wallet className="h-5 w-5" />
             </div>
-            <div className="relative z-10">
-              <p className="font-heading text-2xl font-bold text-white">{value}</p>
-              <p className="text-xs font-medium text-white/80 mt-0.5">{label}</p>
-              <p className="text-[10px] text-white/60 mt-0.5">{sub}</p>
+            <span className="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 text-[9px] font-bold">
+              GLOBAL KORPORAT
+            </span>
+          </div>
+
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Total Anggaran Perusahaan</p>
+            <p className="font-heading text-2xl font-black text-text-primary mt-0.5 tracking-tight">
+              {formatRupiah(d?.totalBudgetCompany)}
+            </p>
+            <div className="mt-2 flex items-center justify-between text-[11px] text-text-placeholder border-t border-slate-100 pt-2 font-medium">
+              <span className="truncate">Terpakai: {formatRupiah(d?.totalUsedCompany)} ({Math.round(d?.absorptionPctCompany ?? 0)}%)</span>
+              <ArrowRight className="h-3.5 w-3.5 text-text-placeholder group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 ml-1" />
             </div>
-          </button>
-        ))}
+          </div>
+        </button>
+
+        {/* Card 2: Proyek Aktif (Semua Dept) (Elevated White Card - Crimson Accent) */}
+        <button
+          onClick={() => navigate('/proyek')}
+          className="group relative flex flex-col justify-between overflow-hidden rounded-3xl p-5 text-left bg-white border border-slate-200/80 shadow-xs hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-50 text-primary border border-rose-100 shadow-2xs">
+              <FolderKanban className="h-5 w-5" />
+            </div>
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-600">
+              Semua Dept
+            </span>
+          </div>
+
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Proyek Aktif (Semua Dept)</p>
+            <p className="font-heading text-2xl font-black text-slate-900 mt-0.5 tracking-tight">
+              {d?.activeProjects ?? 0}
+            </p>
+            <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-100 pt-2 font-medium">
+              <span className="truncate">Seluruh operasional aktif</span>
+              <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-1 transition-transform shrink-0 ml-1" />
+            </div>
+          </div>
+        </button>
+
+        {/* Card 3: Total Pengguna (Elevated White Card - Emerald Accent) */}
+        <button
+          onClick={() => navigate('/sistem/pengguna')}
+          className="group relative flex flex-col justify-between overflow-hidden rounded-3xl p-5 text-left bg-white border border-slate-200/80 shadow-xs hover:shadow-md hover:border-emerald-400/40 hover:-translate-y-0.5 transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-[#48742C] border border-emerald-200/60 shadow-2xs">
+              <Users className="h-5 w-5" />
+            </div>
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-[#48742C]">
+              4 Peran
+            </span>
+          </div>
+
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Pengguna</p>
+            <p className="font-heading text-2xl font-black text-slate-900 mt-0.5 tracking-tight">
+              {d?.totalUsers ?? 0}
+            </p>
+            <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-100 pt-2 font-medium">
+              <span className="truncate">Kelola akun & hak akses</span>
+              <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-1 transition-transform shrink-0 ml-1" />
+            </div>
+          </div>
+        </button>
+
+        {/* Card 4: Keputusan Anggaran Menunggu (Elevated White Card - Amber Accent) */}
+        <button
+          onClick={() => navigate('/anggaran')}
+          className="group relative flex flex-col justify-between overflow-hidden rounded-3xl p-5 text-left bg-white border border-slate-200/80 shadow-xs hover:shadow-md hover:border-amber-400/40 hover:-translate-y-0.5 transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 text-[#B56910] border border-amber-200/60 shadow-2xs">
+              <CheckSquare className="h-5 w-5" />
+            </div>
+            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-[#8A550F]">
+              Tahap 4
+            </span>
+          </div>
+
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Keputusan Anggaran Menunggu</p>
+            <p className="font-heading text-2xl font-black text-slate-900 mt-0.5 tracking-tight">
+              {d?.pendingBudgetDecisions ?? 0}
+            </p>
+            <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-100 pt-2 font-medium">
+              <span className="truncate">Tahap akhir Super Admin</span>
+              <ArrowRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-1 transition-transform shrink-0 ml-1" />
+            </div>
+          </div>
+        </button>
       </div>
 
       {/* Serapan Seluruh Departemen */}

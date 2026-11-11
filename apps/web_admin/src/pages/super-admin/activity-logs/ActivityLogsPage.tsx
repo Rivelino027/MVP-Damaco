@@ -254,37 +254,99 @@ export default function ActivityLogsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6 p-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-text-primary tracking-tight">
-              Log Aktivitas
-            </h1>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-[var(--radius-pill)] text-[11px] font-medium bg-navy text-white">
-              Audit Append-Only
-            </span>
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl gradient-primary shadow-sm shadow-primary/20">
+            <Layers className="h-6 w-6 text-white" />
           </div>
-          <p className="mt-1 text-sm text-text-secondary">
-            Riwayat lengkap audit sistem untuk transparansi, kepatuhan, dan
-            investigasi keamanan.
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="font-heading text-2xl font-bold text-text-primary tracking-tight">
+                Log Aktivitas
+              </h1>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                Audit Append-Only
+              </span>
+            </div>
+            <p className="mt-0.5 text-sm text-text-secondary">
+              Riwayat lengkap audit sistem untuk transparansi, kepatuhan, dan investigasi keamanan.
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <Button
             type="button"
             variant="secondary"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="inline-flex items-center gap-1.5 text-xs h-9"
+            className="inline-flex items-center gap-1.5 text-xs h-9 rounded-xl shadow-xs"
           >
             <RefreshCw
               className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`}
             />
             <span>Segarkan</span>
           </Button>
+        </div>
+      </div>
+
+      {/* Enterprise Metrics Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Integritas Audit Card */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Integritas Audit</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+              Non-Destructive
+            </span>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-heading text-3xl font-extrabold text-text-primary tracking-tight">
+              {meta ? meta.total : logs.length}
+            </span>
+            <span className="text-xs text-text-placeholder">jejak audit tercatat</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-text-secondary">
+            <span>Sesuai Aturan Bisnis #9</span>
+            <span className="text-emerald-700 font-medium">Append-Only</span>
+          </div>
+        </div>
+
+        {/* Card 2: Pengguna Teridentifikasi */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Aktor Teridentifikasi</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-navy">
+              <UserIcon className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-heading text-2xl font-bold text-text-primary">{usersList.length}</span>
+            <span className="text-xs text-text-placeholder">pengguna terdata</span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-navy font-medium">
+            <span>Pelacakan Alamat IP & Agen</span>
+          </div>
+        </div>
+
+        {/* Card 3: Modul Terpantau */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Cakupan Modul</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
+              <Shield className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="font-heading text-sm font-bold text-text-primary">8 Modul Operasional</span>
+            <p className="text-xs text-text-placeholder mt-0.5">Persetujuan, nominal besar, biaya per jam, autentikasi</p>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-purple-600 font-medium">
+            <span>Diff Sebelum & Sesudah</span>
+          </div>
         </div>
       </div>
 

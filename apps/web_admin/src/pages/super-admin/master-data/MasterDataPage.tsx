@@ -480,16 +480,27 @@ export default function MasterDataPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6 p-6">
       {/* Header Halaman */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-            Master Data
-          </h1>
-          <p className="text-sm text-text-secondary mt-1">
-            Kelola data acuan sistem: kategori pengeluaran dan jenis proyek operasional.
-          </p>
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl gradient-primary shadow-sm shadow-primary/20">
+            <Tag className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="font-heading text-2xl font-bold tracking-tight text-text-primary">
+                Master Data
+              </h1>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                Data Acuan Sistem
+              </span>
+            </div>
+            <p className="text-sm text-text-secondary mt-0.5">
+              Kelola data acuan sistem: kategori pengeluaran dan jenis proyek operasional.
+            </p>
+          </div>
         </div>
 
         <Button
@@ -503,38 +514,101 @@ export default function MasterDataPage() {
               setIsPtModalOpen(true);
             }
           }}
-          className="shrink-0"
+          className="shrink-0 self-start sm:self-auto rounded-xl shadow-xs"
         >
           <Plus className="h-4 w-4" />
           {activeTab === 'categories' ? 'Tambah Kategori Biaya' : 'Tambah Jenis Proyek'}
         </Button>
       </div>
 
+      {/* Enterprise Metrics Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Acuan Pengeluaran Card */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Acuan Pengeluaran</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+              Kategori Biaya
+            </span>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-heading text-3xl font-extrabold text-text-primary tracking-tight">
+              {categories.length}
+            </span>
+            <span className="text-xs text-text-placeholder">kategori terdaftar</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-text-secondary">
+            <span>Standarisasi Transaksi</span>
+            <span className="text-emerald-700 font-medium">Aktif</span>
+          </div>
+        </div>
+
+        {/* Project Types Card */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Jenis Proyek</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
+              <FolderKanban className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-heading text-2xl font-bold text-text-primary">{projectTypes.length}</span>
+            <span className="text-xs text-text-placeholder">tipe operasional</span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-purple-600 font-medium">
+            <span>Klasifikasi Portofolio</span>
+          </div>
+        </div>
+
+        {/* Status Aktif */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Kepatuhan Referensi</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[#48742C]">
+              <Tag className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <span className="font-heading text-sm font-bold text-text-primary">Integrasi Relasional</span>
+            <p className="text-xs text-text-placeholder mt-0.5">Semua pengeluaran mengacu pada kategori aktif</p>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-[#48742C] font-medium">
+            <span>Validasi Server Terjamin</span>
+          </div>
+        </div>
+      </div>
+
       {/* Tab Switcher */}
-      <div className="flex border-b border-border">
+      <div className="flex items-center gap-2 border-b border-border pb-px overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('categories')}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'categories'
-              ? 'border-primary text-primary bg-primary-tint/20'
+              ? 'border-primary text-primary'
               : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
           <Tag className="h-4 w-4" />
-          Kategori Biaya ({categories.length})
+          <span>Kategori Biaya</span>
+          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+            {categories.length}
+          </span>
         </button>
         <button
           type="button"
           onClick={() => setActiveTab('project-types')}
-          className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'project-types'
-              ? 'border-primary text-primary bg-primary-tint/20'
+              ? 'border-primary text-primary'
               : 'border-transparent text-text-secondary hover:text-text-primary'
           }`}
         >
           <FolderKanban className="h-4 w-4" />
-          Jenis Proyek ({projectTypes.length})
+          <span>Jenis Proyek</span>
+          <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-700">
+            {projectTypes.length}
+          </span>
         </button>
       </div>
 

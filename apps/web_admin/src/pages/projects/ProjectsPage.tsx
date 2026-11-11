@@ -26,7 +26,7 @@ import {
   deleteProjectApi,
 } from '@/lib/api-projects';
 import { getDepartmentsApi, getCostCentersApi } from '@/lib/api-super-admin';
-import { Button, StatusBadge, ConfirmDialog, EmptyState, toast } from '@/components/shared';
+import { Button, StatusBadge, ConfirmDialog, EmptyState, ErrorState, toast } from '@/components/shared';
 import { cn } from '@/lib/utils';
 import { formatDate, extractErrorMessage } from '@/lib/utils';
 import ProjectFormModal from './ProjectFormModal';
@@ -387,22 +387,30 @@ export default function ProjectsPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl gradient-primary shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl gradient-primary shadow-sm shadow-primary/20">
               <FolderKanban className="h-5 w-5 text-white" />
             </div>
-            <h1 className="font-heading text-2xl font-bold text-text-primary">Proyek</h1>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="font-heading text-2xl font-bold tracking-tight text-text-primary">Proyek</h1>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                  Portofolio Kerja
+                </span>
+              </div>
+              <p className="mt-0.5 text-sm text-text-secondary">
+                {meta ? `${meta.total} proyek ditemukan` : 'Kelola semua proyek'}
+              </p>
+            </div>
           </div>
-          <p className="mt-1 text-sm text-text-secondary">
-            {meta ? `${meta.total} proyek ditemukan` : 'Kelola semua proyek'}
-          </p>
         </div>
         {canEdit && (
           <Button
             id="btn-ajukan-proyek"
             variant="primary"
             onClick={() => setFormModal({ open: true })}
-            className="gap-2 self-start"
+            className="gap-2 self-start rounded-xl shadow-xs"
           >
             <Plus className="h-4 w-4" />
             Ajukan Proyek
@@ -410,29 +418,90 @@ export default function ProjectsPage() {
         )}
       </div>
 
+      {/* Enterprise Portfolio Metric Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Total Portofolio Card */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Total Portofolio</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+              Semua Siklus
+            </span>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-heading text-3xl font-extrabold text-text-primary tracking-tight">
+              {meta ? meta.total : '—'}
+            </span>
+            <span className="text-xs text-text-placeholder">proyek terdata</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-text-secondary">
+            <span>Terkoneksi Cost Center</span>
+            <span className="text-emerald-700 font-medium">Aktif</span>
+          </div>
+        </div>
+
+        {/* Card 2: Proyek Berjalan */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Proyek Berjalan</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50 text-primary">
+              <FolderKanban className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-heading text-2xl font-bold text-text-primary">
+              {projects.filter((p) => p.status === 'berjalan').length}
+            </span>
+            <span className="text-xs text-text-placeholder">dalam eksekusi tim</span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-primary font-medium">
+            <span>Tracking Tahapan & Milestone</span>
+          </div>
+        </div>
+
+        {/* Card 3: Proyek Diajukan / Review */}
+        <div className="rounded-2xl bg-white p-4 border border-border shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Proyek Diajukan</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              <Layers className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-heading text-2xl font-bold text-text-primary">
+              {projects.filter((p) => p.status === 'diajukan').length}
+            </span>
+            <span className="text-xs text-text-placeholder">menunggu inisiasi</span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-blue-600 font-medium">
+            <span>Perlu Peninjauan Anggaran</span>
+          </div>
+        </div>
+      </div>
+
       {/* Filter bar */}
-      <div className="flex flex-wrap gap-3 rounded-[var(--radius-card)] border border-border bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-white p-4 shadow-xs">
         {/* Search */}
-        <div className="relative flex-1 min-w-52">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-placeholder" />
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-placeholder" />
           <input
             id="search-proyek"
             type="text"
             placeholder="Cari nama proyek..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full rounded-[var(--radius-input)] border border-border bg-background py-2 pl-9 pr-3 text-sm text-text-primary placeholder:text-text-placeholder focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+            className="h-10 w-full rounded-xl border border-border bg-slate-50/50 pl-10 pr-3 text-sm text-text-primary placeholder:text-text-placeholder focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
           />
         </div>
 
         {/* Status filter */}
-        <div className="relative">
+        <div className="relative min-w-[160px]">
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-placeholder pointer-events-none" />
           <select
             id="filter-status"
             value={filterStatus}
             onChange={(e) => handleFilterStatus(e.target.value)}
-            className="appearance-none rounded-[var(--radius-input)] border border-border bg-background py-2 pl-9 pr-8 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary cursor-pointer"
+            className="h-10 w-full appearance-none rounded-xl border border-border bg-slate-50/50 pl-9 pr-8 text-sm text-text-primary focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
           >
             <option value="">Semua Status</option>
             <option value="diajukan">Diajukan</option>
@@ -443,43 +512,47 @@ export default function ProjectsPage() {
 
         {/* Dept filter (hide for admin - fixed to own dept) */}
         {user?.role !== 'admin' && depts.length > 0 && (
-          <select
-            id="filter-departemen"
-            value={filterDept}
-            onChange={(e) => handleFilterDept(e.target.value)}
-            className="appearance-none rounded-[var(--radius-input)] border border-border bg-background py-2 px-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary cursor-pointer"
-          >
-            <option value="">Semua Departemen</option>
-            {depts.map((d) => (
-              <option key={d.id} value={d.id}>{d.name}</option>
-            ))}
-          </select>
+          <div className="relative min-w-[170px]">
+            <select
+              id="filter-departemen"
+              value={filterDept}
+              onChange={(e) => handleFilterDept(e.target.value)}
+              className="h-10 w-full appearance-none rounded-xl border border-border bg-slate-50/50 px-3 text-sm text-text-primary focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+            >
+              <option value="">Semua Departemen</option>
+              {depts.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </div>
         )}
 
         {/* Cost center filter */}
         {costCenters.length > 0 && (
-          <select
-            id="filter-cost-center"
-            value={filterCC}
-            onChange={(e) => { setFilterCC(e.target.value); setPage(1); }}
-            className="appearance-none rounded-[var(--radius-input)] border border-border bg-background py-2 px-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary cursor-pointer"
-          >
-            <option value="">Semua Cost Center</option>
-            {costCenters.map((cc) => (
-              <option key={cc.id} value={cc.id}>{cc.code} · {cc.name}</option>
-            ))}
-          </select>
+          <div className="relative min-w-[180px]">
+            <select
+              id="filter-cost-center"
+              value={filterCC}
+              onChange={(e) => { setFilterCC(e.target.value); setPage(1); }}
+              className="h-10 w-full appearance-none rounded-xl border border-border bg-slate-50/50 px-3 text-sm text-text-primary focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+            >
+              <option value="">Semua Cost Center</option>
+              {costCenters.map((cc) => (
+                <option key={cc.id} value={cc.id}>{cc.code} · {cc.name}</option>
+              ))}
+            </select>
+          </div>
         )}
 
         {/* View toggle */}
-        <div className="flex items-center gap-1 rounded-[var(--radius-input)] border border-border bg-background p-1 ml-auto">
+        <div className="flex h-10 items-center gap-1 rounded-xl border border-border bg-slate-50/50 p-1 ml-auto">
           <button
             id="view-card"
             onClick={() => setView('card')}
             className={cn(
-              'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all',
+              'h-8 flex items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition-all cursor-pointer',
               view === 'card'
-                ? 'gradient-primary text-white shadow-sm'
+                ? 'gradient-primary text-white shadow-xs'
                 : 'text-text-secondary hover:text-text-primary',
             )}
             aria-label="Tampilan kartu"
@@ -491,9 +564,9 @@ export default function ProjectsPage() {
             id="view-table"
             onClick={() => setView('table')}
             className={cn(
-              'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all',
+              'h-8 flex items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition-all cursor-pointer',
               view === 'table'
-                ? 'gradient-primary text-white shadow-sm'
+                ? 'gradient-primary text-white shadow-xs'
                 : 'text-text-secondary hover:text-text-primary',
             )}
             aria-label="Tampilan tabel"
@@ -512,9 +585,10 @@ export default function ProjectsPage() {
         </div>
       )}
       {projectsQuery.isError && (
-        <div className="rounded-[var(--radius-card)] border border-danger/20 bg-danger-tint p-6 text-center text-sm text-danger">
-          Gagal memuat daftar proyek. Coba muat ulang halaman.
-        </div>
+        <ErrorState
+          message={extractErrorMessage(projectsQuery.error, 'Gagal memuat daftar proyek')}
+          onRetry={() => projectsQuery.refetch()}
+        />
       )}
 
       {projectsQuery.isSuccess && projects.length === 0 && (
@@ -580,29 +654,31 @@ export default function ProjectsPage() {
 
       {/* Pagination */}
       {meta && meta.totalPages > 1 && (
-        <div className="flex items-center justify-between rounded-[var(--radius-card)] border border-border bg-white p-3 shadow-sm">
+        <div className="flex items-center justify-between rounded-2xl border border-border bg-white px-5 py-3.5 shadow-xs">
           <p className="text-xs text-text-secondary">
-            Halaman <span className="font-semibold">{meta.page}</span> dari{' '}
-            <span className="font-semibold">{meta.totalPages}</span>
+            Halaman <span className="font-semibold text-text-primary">{meta.page}</span> dari{' '}
+            <span className="font-semibold text-text-primary">{meta.totalPages}</span>
             {' '}({meta.total} total)
           </p>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               id="pagination-prev"
+              variant="secondary"
+              size="sm"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs text-text-secondary disabled:opacity-40 hover:bg-background hover:text-text-primary transition-colors"
             >
-              <ChevronLeft className="h-3.5 w-3.5" /> Sebelumnya
-            </button>
-            <button
+              <ChevronLeft className="h-4 w-4" /> Sebelumnya
+            </Button>
+            <Button
               id="pagination-next"
+              variant="secondary"
+              size="sm"
               onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
               disabled={page === meta.totalPages}
-              className="flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs text-text-secondary disabled:opacity-40 hover:bg-background hover:text-text-primary transition-colors"
             >
-              Berikutnya <ChevronRight className="h-3.5 w-3.5" />
-            </button>
+              Berikutnya <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       )}
