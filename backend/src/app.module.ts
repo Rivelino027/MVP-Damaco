@@ -1,0 +1,43 @@
+import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { PrismaModule } from './prisma/prisma.module';
+import { HealthModule } from './health/health.module';
+import { AuthModule } from './auth/auth.module';
+import { SuperAdminModule } from './super-admin/super-admin.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { RolesGuard } from './auth/guards/roles.guard';
+
+import { ProjectsModule } from './projects/projects.module';
+import { TasksModule } from './tasks/tasks.module';
+import { TimesheetsModule } from './timesheets/timesheets.module';
+import { LaborCostsModule } from './labor-costs/labor-costs.module';
+import { ExpensesModule } from './expenses/expenses.module';
+import { BudgetsModule } from './budgets/budgets.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+
+@Module({
+  imports: [
+    PrismaModule,
+    HealthModule,
+    AuthModule,
+    SuperAdminModule,
+    ProjectsModule,
+    TasksModule,
+    TimesheetsModule,
+    LaborCostsModule,
+    ExpensesModule,
+    BudgetsModule,
+    DashboardModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
+})
+export class AppModule {}

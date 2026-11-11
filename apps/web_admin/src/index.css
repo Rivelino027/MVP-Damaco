@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+/* ===== Design Tokens (dari design-tokens/tokens.json) ===== */
+@theme {
+  /* Colors */
+  --color-primary: #E8141C;
+  --color-primary-dark: #B0000F;
+  --color-primary-bright: #FF4D4D;
+  --color-primary-tint: #FCE4E7;
+  --color-blue: #0A47B8;
+  --color-navy: #0A2E7F;
+  --color-blue-tint: #E8F1FD;
+  --color-surface: #FFFFFF;
+  --color-background: #FBF7F7;
+  --color-border: #EBE3E4;
+  --color-disabled: #D9D9D9;
+  --color-text-primary: #1A0B0D;
+  --color-text-secondary: #6B5E60;
+  --color-text-placeholder: #9A8D8F;
+  --color-darkest: #1A0507;
+  --color-success: #48742C;
+  --color-warning: #F29D38;
+  --color-warning-strong: #B56910;
+  --color-warning-tint: #FDF0DC;
+  --color-warning-text: #9A5A0A;
+  --color-warning-text-strong: #8A550F;
+  --color-danger: #B0000F;
+  --color-danger-tint: #FCE4E7;
+
+  /* Radius */
+  --radius-card: 16px;
+  --radius-card-lg: 20px;
+  --radius-pill: 999px;
+  --radius-input: 12px;
+
+  /* Fonts */
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Spacing */
+  --spacing-unit: 8px;
+  --spacing-bento-gap: 24px;
+}
+
+/* ===== Base Styles ===== */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: var(--font-body);
+    color: var(--color-text-primary);
+  }
+
+  body {
+    background: linear-gradient(180deg, var(--color-background) 0%, var(--color-surface) 100%);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+  }
+}
+
+/* ===== Utility Classes ===== */
+@utility gradient-primary {
+  background: linear-gradient(135deg, #E8141C 0%, #B0000F 100%);
+}
+
+@utility gradient-page {
+  background: linear-gradient(180deg, #FBF7F7 0%, #FFFFFF 100%);
+}
+
+@utility glass-sidebar {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ===== shadcn/ui CSS Variables ===== */
+:root {
+  --radius: 0.75rem;
+  --background: 0 14% 98%;
+  --foreground: 350 33% 7%;
+  --card: 0 0% 100%;
+  --card-foreground: 350 33% 7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 350 33% 7%;
+  --primary: 358 84% 49%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 350 10% 95%;
+  --secondary-foreground: 350 33% 7%;
+  --muted: 350 10% 95%;
+  --muted-foreground: 350 5% 47%;
+  --accent: 350 10% 95%;
+  --accent-foreground: 350 33% 7%;
+  --destructive: 355 100% 35%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 350 12% 90%;
+  --input: 350 12% 90%;
+  --ring: 358 84% 49%;
+  --chart-1: 358 84% 49%;
+  --chart-2: 218 87% 38%;
+  --chart-3: 102 48% 31%;
+  --chart-4: 34 89% 58%;
+  --chart-5: 223 62% 27%;
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 350 33% 7%;
+  --sidebar-primary: 358 84% 49%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 350 10% 95%;
+  --sidebar-accent-foreground: 350 33% 7%;
+  --sidebar-border: 350 12% 90%;
+  --sidebar-ring: 358 84% 49%;
+}
