@@ -12,17 +12,21 @@ async function main() {
   }
 
   // ----- Users -----
-  const userEmail = 'pengguna@perusahaan.com';
-  const user = await prisma.user.upsert({
-    where: { email: userEmail },
-    update: {},
-    create: {
-      name: 'Pengguna',
-      email: userEmail,
-      passwordHash: 'TODO_HASH', // placeholder – use proper hash in dev
-      role: Role.pengguna,
-    },
-  });
+  // Use the existing user with the known ID. Do not alter passwordHash.
+  const existingUserId = 'c1d16d80-6861-469c-9182-87e9c196720d';
+  let user = await prisma.user.findUnique({ where: { id: existingUserId } });
+  if (!user) {
+    // Fallback: create the user if it does not exist (development only).
+    user = await prisma.user.create({
+      data: {
+        id: existingUserId,
+        name: 'Pengguna',
+        email: 'pengguna@perusahaan.com',
+        passwordHash: 'TODO_HASH', // placeholder for dev
+        role: Role.pengguna,
+      },
+    });
+  }
 
   // ----- Department & Cost Center -----
   const department = await prisma.department.upsert({
@@ -31,10 +35,11 @@ async function main() {
     create: { name: 'IT' },
   });
 
+  // Use existing cost center with code 'IT-Product-01'
   const costCenter = await prisma.costCenter.upsert({
-    where: { code: 'IT-CC' },
+    where: { code: 'IT-Product-01' },
     update: {},
-    create: { code: 'IT-CC', name: 'IT Cost Center', departmentId: department.id },
+    create: { code: 'IT-Product-01', name: 'IT Product Center', departmentId: department.id },
   });
 
   // ----- Projects (2) -----
@@ -154,7 +159,7 @@ async function main() {
 
   // ----- Expenses (6) -----
   const expenseDefs = [
-    { amount: 300000, status: ExpenseStatus.draft },
+    { amount: 300000, status: ExpenseStatus.disetujui },
     { amount: 1500000, status: ExpenseStatus.menunggu_admin },
     { amount: 2500000, status: ExpenseStatus.menunggu_finance },
     { amount: 5000000, status: ExpenseStatus.siap_dibayar }, // large amount
@@ -186,23 +191,93 @@ async function main() {
 
   // ----- Notifications (5) -----
   const notifDefs = [
-    { title: 'Welcome', body: 'Selamat datang', read: true },
-    { title: 'Task Assigned', body: 'Anda memiliki task baru', read: false },
-    { title: 'Expense Approved', body: 'Pengeluaran Anda telah disetujui', read: true },
-    { title: 'Timesheet Submitted', body: 'Timesheet minggu ini telah dikirim', read: false },
-    { title: 'System Update', body: 'Aplikasi diperbarui ke versi terbaru', read: false },
+    {
+      title: 'Welcome',
+      body: 'Selamat datang di BudgetFlow',
+      type: 'info',
+      read: true,
+    },
+    {
+      title: 'Task Assigned',
+      body: `Anda memiliki task baru: ${tasks[0]?.title || 'Task'}`,
+      type: 'task',
+      refType: 'task',
+      refId: tasks[0]?.id,
+      read: false,
+    },
+    {
+      title: 'Expense Approved',
+      body: `Pengeluaran Anda dengan jumlah Rp ${expenseDefs[0]?.amount?.toLocaleString() || ''} telah disetujui`,
+      type: 'expense',
+      refType: 'expense',
+      // Use first expense created (we will capture its id below)
+      refId: null,
+      read: true,
+    },
+    {
+      title: 'Timesheet Submitted',
+      body: 'Timesheet minggu ini telah dikirim',
+      type: 'timesheet',
+      refType: 'timesheet',
+      refId: timesheet.id,
+      read: false,
+    },
+    {
+      title: 'System Update',
+      body: 'Aplikasi diperbarui ke versi terbaru',
+      type: 'info',
+      read: false,
+    },
   ];
 
-  for (const nd of notifDefs) {
-    await prisma.notification.create({
-      data: {
-        userId: user.id,
-        type: 'info',
-        title: nd.title,
-        body: nd.body,
-        readAt: nd.read ? new Date() : undefined,
-      },
+  // Capture created expenses to link in notification
+  const createdExpenses: any[] = [];
+  for (let i = 0; i < expenseDefs.length; i++) {
+    const proj = projects[i % projects.length];
+    let expense = await prisma.expense.findFirst({
+      where: { amount: expenseDefs[i].amount, projectId: proj.id },
     });
+    if (!expense) {
+      expense = await prisma.expense.create({
+        data: {
+          requesterId: user.id,
+          projectId: proj.id,
+          costCenterId: costCenter.id,
+          categoryId: defaultCategory.id,
+          amount: expenseDefs[i].amount,
+          expenseDate: new Date('2026-11-18'),
+          status: expenseDefs[i].status,
+          isLargeAmount: expenseDefs[i].amount > 5000000,
+        },
+      });
+    }
+    createdExpenses.push(expense);
+  }
+
+  // Update refId for Expense Approved notification now that we have an expense id
+  const expenseApprovedNotif = notifDefs.find((n) => n.title === 'Expense Approved');
+  if (expenseApprovedNotif) {
+    expenseApprovedNotif.refId = createdExpenses[0]?.id;
+  }
+
+  // Insert notifications idempotently
+  for (const nd of notifDefs) {
+    const existing = await prisma.notification.findFirst({
+      where: { userId: user.id, title: nd.title, type: nd.type },
+    });
+    if (!existing) {
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          type: nd.type,
+          title: nd.title,
+          body: nd.body,
+          refType: nd.refType ?? undefined,
+          refId: nd.refId ?? undefined,
+          readAt: nd.read ? new Date() : undefined,
+        },
+      });
+    }
   }
 
   console.log('Seed data inserted/updated successfully.');
