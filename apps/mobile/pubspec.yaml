@@ -1,0 +1,67 @@
+name: damacoflow 
+description: "Aplikasi mobile manajemen proyek dan budgeting PT. Dunia Maya Communica"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Routing/
+  go_router: ^14.8.1
+
+  # Network & Connectivity
+  dio: ^5.8.0+1
+  connectivity_plus: ^6.1.4
+
+  # Secure Storage
+  flutter_secure_storage: ^9.2.4
+
+  # Serialization
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # Localization & Utils
+  intl: ^0.20.2
+  google_fonts: ^6.2.1
+  package_info_plus: ^8.3.1
+  url_launcher: ^6.3.1
+
+  # UI Helper
+  shimmer: ^3.0.0
+
+  # Media
+  image_picker: ^1.1.2
+  camera: ^0.11.2
+  flutter_image_compress: ^2.4.0
+
+  # Notifications
+  firebase_core: ^3.12.1
+  firebase_messaging: ^15.2.4
+  flutter_local_notifications: ^19.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+  # Code Generation
+  build_runner: ^2.4.15
+  riverpod_generator: ^2.6.4
+  freezed: ^2.5.8
+  json_serializable: ^6.9.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

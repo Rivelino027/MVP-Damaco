@@ -35,15 +35,26 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      // Izinkan request tanpa origin (mobile apps, curl, Postman) atau origin yang terdaftar
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Izinkan request tanpa origin (mobile apps native, curl, Postman),
+      // origin yang terdaftar, atau localhost port apa pun saat development
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+      ) {
         callback(null, true);
       } else {
         callback(new Error(`CORS diblokir untuk origin: ${origin}`));
       }
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Client', 'Accept'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Client',
+      'X-Device-Info',
+      'Accept',
+    ],
     credentials: true,
   });
 

@@ -1,286 +1,216 @@
-import { PrismaClient, Role, DocumentType, LimitStatus } from '@prisma/client';
-import * as argon2 from 'argon2';
-import * as crypto from 'crypto';
+// Prisma seed script for dev environment – idempotent
+// Run with: npm run seed (see package.json)
+import { PrismaClient, Role, ProjectStatus, TaskStatus, Priority, TimesheetStatus, ExpenseStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Token warna dari design-tokens/tokens.json
-const CATEGORY_COLORS = {
-  primary: '#E8141C',
-  blue: '#0A47B8',
-  warning: '#F29D38',
-  textSecondary: '#6B5E60',
-};
-
-function generateStrongPassword(): string {
-  // Menghasilkan password acak berkekuatan tinggi (huruf besar, kecil, angka, simbol)
-  const bytes = crypto.randomBytes(18).toString('base64');
-  return bytes.replace(/[+/=]/g, (m) =>
-    m === '+' ? 'X' : m === '/' ? 'Y' : '!',
-  );
-}
-
 async function main() {
-  console.log('Memulai seeding database BudgetFlow...');
-
-  // 1. Departemen
-  const departmentsData = [
-    { name: 'IT' },
-    { name: 'Finance' },
-    { name: 'Operasional' },
-    { name: 'HR' },
-  ];
-
-  const departments: Record<string, string> = {};
-  for (const dept of departmentsData) {
-    const record = await prisma.department.upsert({
-      where: { name: dept.name },
-      update: {},
-      create: { name: dept.name, isActive: true },
-    });
-    departments[dept.name] = record.id;
+  // Ensure we are not in production
+  if (process.env.NODE_ENV && process.env.NODE_ENV !== 'development') {
+    console.warn('Seed script should only run in development. Aborting.');
+    return;
   }
-  console.log(`✓ 4 Departemen siap: ${Object.keys(departments).join(', ')}`);
 
-  // 2. Cost Centers
-  const costCentersData = [
-    {
-      code: 'IT-Product-01',
-      name: 'IT Product Development',
-      departmentName: 'IT',
+  // ----- Users -----
+  const userEmail = 'pengguna@perusahaan.com';
+  const user = await prisma.user.upsert({
+    where: { email: userEmail },
+    update: {},
+    create: {
+      name: 'Pengguna',
+      email: userEmail,
+      passwordHash: 'TODO_HASH', // placeholder – use proper hash in dev
+      role: Role.pengguna,
     },
-    { code: 'FIN-01', name: 'Finance Operations', departmentName: 'Finance' },
-    {
-      code: 'OPS-01',
-      name: 'General Operations',
-      departmentName: 'Operasional',
-    },
-    { code: 'HR-01', name: 'Human Resources', departmentName: 'HR' },
-  ];
-
-  for (const cc of costCentersData) {
-    await prisma.costCenter.upsert({
-      where: { code: cc.code },
-      update: { departmentId: departments[cc.departmentName] },
-      create: {
-        code: cc.code,
-        name: cc.name,
-        departmentId: departments[cc.departmentName],
-        isActive: true,
-      },
-    });
-  }
-  console.log('✓ 4 Cost Center siap');
-
-  // 3. Kategori Biaya (warna dari design-tokens/tokens.json)
-  const categoriesData = [
-    { name: 'Tenaga Kerja', code: 'LABOR', color: CATEGORY_COLORS.primary },
-    { name: 'Material', code: 'MATERIAL', color: CATEGORY_COLORS.warning },
-    { name: 'Vendor', code: 'VENDOR', color: CATEGORY_COLORS.blue },
-    { name: 'Lain-lain', code: 'OTHER', color: CATEGORY_COLORS.textSecondary },
-  ];
-
-  for (const cat of categoriesData) {
-    await prisma.expenseCategory.upsert({
-      where: { code: cat.code },
-      update: { name: cat.name, color: cat.color },
-      create: {
-        name: cat.name,
-        code: cat.code,
-        color: cat.color,
-        isActive: true,
-      },
-    });
-  }
-  console.log('✓ 4 Kategori Biaya siap');
-
-  // 4. Approval Rules
-  const approvalRulesData = [
-    // Timesheet: Pengaju -> Admin
-    { documentType: DocumentType.timesheet, stepOrder: 1, role: Role.admin },
-    // Pengeluaran: Pengaju -> Admin -> Finance
-    { documentType: DocumentType.expense, stepOrder: 1, role: Role.admin },
-    { documentType: DocumentType.expense, stepOrder: 2, role: Role.finance },
-    // Anggaran: Admin -> Finance -> Super Admin
-    {
-      documentType: DocumentType.budget_request,
-      stepOrder: 1,
-      role: Role.admin,
-    },
-    {
-      documentType: DocumentType.budget_request,
-      stepOrder: 2,
-      role: Role.finance,
-    },
-    {
-      documentType: DocumentType.budget_request,
-      stepOrder: 3,
-      role: Role.super_admin,
-    },
-  ];
-
-  for (const rule of approvalRulesData) {
-    await prisma.approvalRule.upsert({
-      where: {
-        documentType_stepOrder: {
-          documentType: rule.documentType,
-          stepOrder: rule.stepOrder,
-        },
-      },
-      update: { role: rule.role },
-      create: rule,
-    });
-  }
-  console.log('✓ 6 Aturan Persetujuan (approval_rules) siap');
-
-  // 5. Approval Limit Awal (Rp5.000.000, status berlaku)
-  const existingLimit = await prisma.approvalLimit.findFirst({
-    where: { status: LimitStatus.berlaku },
   });
 
-  if (!existingLimit) {
-    await prisma.approvalLimit.create({
-      data: {
-        amount: 5000000,
-        status: LimitStatus.berlaku,
-        confirmedAt: new Date(),
-      },
-    });
-    console.log(
-      '✓ Batas Nominal Besar awal Rp5.000.000 (status berlaku) dibuat',
-    );
-  } else {
-    console.log(
-      `✓ Batas Nominal Besar sudah ada (Rp${existingLimit.amount.toString()}), melewati`,
-    );
-  }
+  // ----- Department & Cost Center -----
+  const department = await prisma.department.upsert({
+    where: { name: 'IT' },
+    update: {},
+    create: { name: 'IT' },
+  });
 
-  // 6. Pengaturan Aplikasi (app_settings)
-  const appSettingsData = [
-    {
-      key: 'absorption_warning_threshold',
-      value: { threshold: 80, unit: 'percent' },
-    },
-    {
-      key: 'split_detection_window_days',
-      value: { days: 7, unit: 'days' },
-    },
+  const costCenter = await prisma.costCenter.upsert({
+    where: { code: 'IT-CC' },
+    update: {},
+    create: { code: 'IT-CC', name: 'IT Cost Center', departmentId: department.id },
+  });
+
+  // ----- Projects (2) -----
+  const projectData = [
+    { name: 'Implementasi Jaringan Lantai 2', description: 'Konfigurasi VLAN Lantai 2', status: ProjectStatus.berjalan },
+    { name: 'Backup Server Utama', description: 'Backup rutin server produksi', status: ProjectStatus.berjalan },
   ];
 
-  for (const setting of appSettingsData) {
-    await prisma.appSetting.upsert({
-      where: { key: setting.key },
-      update: { value: setting.value },
-      create: {
-        key: setting.key,
-        value: setting.value,
-      },
+  const projects = [] as any[];
+  for (const pd of projectData) {
+    let proj = await prisma.project.findFirst({
+      where: { name: pd.name, departmentId: department.id },
     });
-  }
-  console.log(
-    '✓ Pengaturan aplikasi (ambang serapan 80, jendela deteksi 7 hari) siap',
-  );
-
-  // 7. Akun Awal (4 peran, satu akun per peran)
-  const usersToSeed = [
-    {
-      name: 'User Pengguna',
-      email: 'pengguna@perusahaan.com',
-      role: Role.pengguna,
-      departmentId: departments['IT'],
-      jobTitle: 'Software Engineer',
-    },
-    {
-      name: 'Admin Proyek',
-      email: 'admin@perusahaan.com',
-      role: Role.admin,
-      departmentId: departments['IT'],
-      jobTitle: 'Project Lead',
-    },
-    {
-      name: 'Finance Verifier',
-      email: 'finance@perusahaan.com',
-      role: Role.finance,
-      departmentId: departments['Finance'],
-      jobTitle: 'Financial Controller',
-    },
-    {
-      name: 'Super Administrator',
-      email: 'superadmin@perusahaan.com',
-      role: Role.super_admin,
-      departmentId: null,
-      jobTitle: 'System Administrator',
-    },
-  ];
-
-  const newlyCreatedAccounts: Array<{
-    role: string;
-    name: string;
-    email: string;
-    password: string;
-  }> = [];
-
-  for (const u of usersToSeed) {
-    const existing = await prisma.user.findUnique({
-      where: { email: u.email },
-    });
-
-    if (existing) {
-      console.log(
-        `✓ Akun ${u.email} (${u.role}) sudah ada, password tidak diubah.`,
-      );
-    } else {
-      const plainPassword = generateStrongPassword();
-      const passwordHash = await argon2.hash(plainPassword);
-
-      await prisma.user.create({
+    if (!proj) {
+      proj = await prisma.project.create({
         data: {
-          name: u.name,
-          email: u.email,
-          passwordHash,
-          role: u.role,
-          departmentId: u.departmentId,
-          jobTitle: u.jobTitle,
-          isActive: true,
+          name: pd.name,
+          description: pd.description,
+          departmentId: department.id,
+          costCenterId: costCenter.id,
+          status: pd.status,
+          createdById: user.id,
         },
       });
+    }
+    projects.push(proj);
+    // ensure the user is a member of the project (idempotent upsert on composite unique)
+    await prisma.projectMember.upsert({
+      where: { projectId_userId: { projectId: proj.id, userId: user.id } },
+      update: {},
+      create: { projectId: proj.id, userId: user.id },
+    });
+  }
 
-      newlyCreatedAccounts.push({
-        role: u.role,
-        name: u.name,
-        email: u.email,
-        password: plainPassword,
+  // ----- Phases for each project (simple single phase) -----
+  for (const proj of projects) {
+    let phase = await prisma.phase.findFirst({
+      where: { projectId: proj.id, name: 'Phase 1' },
+    });
+    if (!phase) {
+      phase = await prisma.phase.create({
+        data: { projectId: proj.id, name: 'Phase 1', sortOrder: 1 },
       });
     }
   }
 
-  // CETAK PASSWORD SEKALI SAJA KE TERMINAL JIKA ADA AKUN BARU
-  if (newlyCreatedAccounts.length > 0) {
-    console.log('\n' + '='.repeat(80));
-    console.log(
-      ' [PENTING] KREDENSIAL AKUN AWAL BUDGETFLOW (DICETAK SEKALI KE TERMINAL)',
-    );
-    console.log('='.repeat(80));
-    for (const acc of newlyCreatedAccounts) {
-      console.log(`Peran        : ${acc.role}`);
-      console.log(`Nama         : ${acc.name}`);
-      console.log(`Email        : ${acc.email}`);
-      console.log(`Password     : ${acc.password}`);
-      console.log('-'.repeat(80));
+  // ----- Tasks (6) -----
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  const past = new Date();
+  past.setDate(today.getDate() - 2);
+
+  const taskDefs = [
+    { title: 'Konfigurasi VLAN Lantai 2', status: TaskStatus.belum_mulai, priority: Priority.tinggi, dueDate: tomorrow },
+    { title: 'Backup server utama', status: TaskStatus.dikerjakan, priority: Priority.sedang, dueDate: today },
+    { title: 'Dokumentasi topologi jaringan', status: TaskStatus.review, priority: Priority.rendah, dueDate: past },
+    { title: 'Monitoring sistem', status: TaskStatus.selesai, priority: Priority.sedang, dueDate: past },
+    { title: 'Patch keamanan', status: TaskStatus.belum_mulai, priority: Priority.tinggi, dueDate: tomorrow },
+    { title: 'Audit log', status: TaskStatus.dikerjakan, priority: Priority.rendah, dueDate: today },
+  ];
+
+  const tasks = [] as any[];
+  for (let i = 0; i < taskDefs.length; i++) {
+    const proj = projects[i % projects.length];
+    const td = taskDefs[i];
+    let task = await prisma.task.findFirst({
+      where: { title: td.title, projectId: proj.id },
+    });
+    if (!task) {
+      task = await prisma.task.create({
+        data: {
+          title: td.title,
+          projectId: proj.id,
+          assigneeId: user.id,
+          status: td.status,
+          priority: td.priority,
+          dueDate: td.dueDate,
+        },
+      });
     }
-    console.log('CATATAN: Salin dan simpan password ini sekarang.');
-    console.log(
-      'Password tidak disimpan di file teks dan tidak akan dicetak ulang.',
-    );
-    console.log('='.repeat(80) + '\n');
+    tasks.push(task);
   }
 
-  console.log('Seeding selesai dengan sukses.');
+  // ----- Timesheet for week 16-22 Nov 2026 -----
+  const weekStart = new Date('2026-11-16');
+  const timesheet = await prisma.timesheet.upsert({
+    where: { userId_weekStart: { userId: user.id, weekStart } },
+    update: {},
+    create: {
+      userId: user.id,
+      weekStart,
+      status: TimesheetStatus.draft,
+    },
+  });
+
+  // Add entries totaling ~20h spread across tasks
+  const entryHours = [4, 3, 5, 2, 3, 3];
+  for (let i = 0; i < tasks.length; i++) {
+    await prisma.timesheetEntry.create({
+      data: {
+        timesheetId: timesheet.id,
+        taskId: tasks[i].id,
+        workDate: new Date('2026-11-17'),
+        hours: entryHours[i],
+        note: 'Dev seed entry',
+      },
+    });
+  }
+
+  // Ensure a default expense category exists
+  const defaultCategory = await prisma.expenseCategory.upsert({
+    where: { name: 'General' },
+    update: {},
+    create: { name: 'General', code: 'GEN' },
+  });
+
+  // ----- Expenses (6) -----
+  const expenseDefs = [
+    { amount: 300000, status: ExpenseStatus.draft },
+    { amount: 1500000, status: ExpenseStatus.menunggu_admin },
+    { amount: 2500000, status: ExpenseStatus.menunggu_finance },
+    { amount: 5000000, status: ExpenseStatus.siap_dibayar }, // large amount
+    { amount: 2000000, status: ExpenseStatus.dibayar },
+    { amount: 100000, status: ExpenseStatus.ditolak },
+  ];
+
+  for (let i = 0; i < expenseDefs.length; i++) {
+    const proj = projects[i % projects.length];
+    // Check if expense already exists for this amount and project
+    let expense = await prisma.expense.findFirst({
+      where: { amount: expenseDefs[i].amount, projectId: proj.id },
+    });
+    if (!expense) {
+      expense = await prisma.expense.create({
+        data: {
+          requesterId: user.id,
+          projectId: proj.id,
+          costCenterId: costCenter.id,
+          categoryId: defaultCategory.id,
+          amount: expenseDefs[i].amount,
+          expenseDate: new Date('2026-11-18'),
+          status: expenseDefs[i].status,
+          isLargeAmount: expenseDefs[i].amount > 5000000,
+        },
+      });
+    }
+  }
+
+  // ----- Notifications (5) -----
+  const notifDefs = [
+    { title: 'Welcome', body: 'Selamat datang', read: true },
+    { title: 'Task Assigned', body: 'Anda memiliki task baru', read: false },
+    { title: 'Expense Approved', body: 'Pengeluaran Anda telah disetujui', read: true },
+    { title: 'Timesheet Submitted', body: 'Timesheet minggu ini telah dikirim', read: false },
+    { title: 'System Update', body: 'Aplikasi diperbarui ke versi terbaru', read: false },
+  ];
+
+  for (const nd of notifDefs) {
+    await prisma.notification.create({
+      data: {
+        userId: user.id,
+        type: 'info',
+        title: nd.title,
+        body: nd.body,
+        readAt: nd.read ? new Date() : undefined,
+      },
+    });
+  }
+
+  console.log('Seed data inserted/updated successfully.');
 }
 
 main()
   .catch((e) => {
-    console.error('Error saat seeding database:', e);
+    console.error(e);
     process.exit(1);
   })
   .finally(async () => {

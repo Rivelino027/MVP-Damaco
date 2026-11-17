@@ -35,3 +35,10 @@ Thumbs.db
 
 # File storage
 uploads/
+
+# Firebase & Mobile Secrets
+**/google-services.json
+**/GoogleService-Info.plist
+*.keystore
+*.jks
+
